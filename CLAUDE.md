@@ -1,14 +1,14 @@
 # CLAUDE.md
 
-Varanda Barber: agendamento de corte, mesmo esquema do tô lisa (HTML/CSS/JS puros, Firebase via REST, aviso por Worker). tudo em pt-BR.
+Varanda Barber: agendamento de corte, mesmo esquema do tô lisa (HTML/CSS/JS puros, Firebase via REST, sem servidor). tudo em pt-BR.
 o mapa está no README.
 
 ## regras que não se quebram
 
 - **sem dependência no site, sem framework, sem build.** `package.json` é só ferramenta de teste.
-- **aspas simples no `const DB = '...'` e no `const API = '...'`**: o `specs/_serve.cjs` troca essas linhas pelos falsos.
+- **aspas simples no `const DB = '...'`**: o `specs/_serve.cjs` troca a linha pelo banco falso.
 - **o banco é hostil**: texto passa por `esc()` antes de `innerHTML`, o que vem do banco passa por `clean()`.
-- **só o barbeiro aceita**: o cliente só cria pedido (regra do banco); o `ok` só o Worker grava, com a `SENHA`.
+- **só o barbeiro aceita**: o cliente só cria pedido; o `ok` só a conta `EMAIL` do Firebase Authentication grava (regra do banco).
   mexeu no `database.rules.json`, mexa no `_banco.cjs`.
 - **service worker**: mudou a estratégia, troque o nome `CACHE`.
 

@@ -1,16 +1,18 @@
-Varanda Barber: o que falta pra sair do preview e valer de verdade
+Varanda Barber: o que falta pra sair do preview e valer de verdade (só Firebase, sem servidor)
 
-hoje o app roda em PREVIEW: sem banco e sem aviso, os pedidos ficam só no aparelho de quem abre.
-o barbeiro do preview entra pelo link "ver como barbeiro" (?barbeiro=preview).
-o preview desliga sozinho quando a URL do banco de verdade entra no lugar do SEU-PROJETO no app.js.
+hoje o app roda em PREVIEW: os pedidos ficam só no aparelho de quem abre; o barbeiro entra com a senha "preview".
+o preview desliga sozinho quando a URL do banco de verdade entra no const DB do app.js.
 
-1. Firebase: crie o projeto e o Realtime Database. cole o database.rules.json em Regras. pegue a URL do banco e o
-   segredo legado (Configurações do projeto › Contas de serviço › Chaves secretas do banco de dados).
-2. troque os SEU-...: a URL do banco no app.js (const DB) e no servidor/wrangler.toml (FIREBASE_DB);
-   a URL do Worker no app.js (const API) e na CSP do index.html (aparece no resumo do 1º deploy do servidor.yml).
-   o número do barbeiro em const ZAP (opcional).
-3. secrets do repositório: CLOUDFLARE_API_TOKEN (modelo "Edit Cloudflare Workers"), CLOUDFLARE_ACCOUNT_ID,
-   SENHA (a do link do barbeiro, 20+ letras), FIREBASE_SECRET.
-4. Pages: Settings › Pages › Source: GitHub Actions. push na main publica o site e sobe o Worker.
-5. o barbeiro (Luique, o único admin; o zap dele já está no const ZAP) abre https://<site>/?barbeiro=<SENHA> uma vez e toca em "receber aviso". depois o link é só ?barbeiro.
-   no iPhone o aviso só funciona com o site adicionado à tela de início.
+no console do Firebase (projeto varanda-417d1):
+1. Realtime Database › Criar banco de dados › local Estados Unidos (us-central1) › modo bloqueado.
+   na aba Regras, cole o database.rules.json e publique.
+2. Authentication › Começar › Método de login: E-mail/senha (ativar).
+   Usuários › Adicionar usuário: luique@varanda.barber + a senha do Luique (é a que ele digita na agenda).
+3. Configurações do projeto › Geral › Seus apps › adicionar app da Web (</>), qualquer nome, sem hosting.
+   copie o apiKey ("AIza...") e me mande. ele é público, não é segredo.
+NÃO precisa: chave privada / conta de serviço / Cloudflare.
+
+no código (eu faço, com o apiKey): const DB = 'https://varanda-417d1-default-rtdb.firebaseio.com' e const CHAVE = '<apiKey>'.
+
+o Luique abre https://fernandollisboa.github.io/varanda-barber/?barbeiro, entra uma vez com a senha e o celular lembra.
+o aviso de pedido novo é o zap: o cliente manda pelo botão "mandar pro Luique no zap".
