@@ -72,3 +72,9 @@ Então('aparece {string}', ({ mundo }, texto) => expect(mundo.p.locator('main'))
 Então('o celular do barbeiro recebe um aviso', ({ mundo }) => expect.poll(() => mundo.api.pushes).toEqual(['https://push.falso/barbeiro']));
 Então('o horário de {int}h está ocupado', ({ mundo }, h) => expect(mundo.p.getByRole('button', { name: `${h}h`, exact: true })).toBeDisabled());
 Então('o horário de {int}h está livre', ({ mundo }, h) => expect(mundo.p.getByRole('button', { name: `${h}h`, exact: true })).toBeEnabled());
+Então('o primeiro dia da agenda é {string}', ({ mundo }, d) => expect(mundo.p.locator('[data-dia]').first()).toHaveText(d));
+Então('o botão do zap manda pro Luique o link do pedido de {int}h de hoje', async ({ mundo }, h) => {
+  const href = await mundo.p.getByRole('link', { name: 'mandar pro Luique no zap' }).getAttribute('href');
+  expect(href).toMatch(/^https:\/\/wa\.me\/557996491143\?text=/);
+  expect(decodeURIComponent(href.split('text=')[1])).toContain(`?barbeiro&pedido=${HOJE}/${hora(h)}`);
+});

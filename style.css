@@ -1,24 +1,35 @@
-:root { --fundo: #1f1a17; --papel: #f4ecdf; --tinta: #2a2420; --ouro: #c8964a; --apagado: #9a8f82; --ok: #2f7d4f; }
+/* rústico e tropical: madeira, areia, folha e terracota. semáforo só no status: amarelo espera, verde confirmado */
+:root {
+  --madeira: #2b1d14; --madeira-clara: #3a281b; --areia: #f2e6cf; --tinta: #2a1f17; --apagado: #8c7a64;
+  --folha: #2f6b3f; --terracota: #b5532d; --amarelo: #e0a22a; --verde: #3a8a48;
+}
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--fundo); color: var(--tinta); font: 17px/1.4 system-ui, sans-serif; }
-header { text-align: center; color: var(--papel); padding: 24px 16px 8px; }
-h1 { margin: 0; font-size: 30px; letter-spacing: 1px; }
-h1 span { color: var(--ouro); }
-header p { margin: 4px 0 0; color: var(--apagado); }
+body {
+  margin: 0; color: var(--tinta); font: 17px/1.4 system-ui, sans-serif;
+  background: var(--madeira) repeating-linear-gradient(90deg, transparent 0 46px, rgba(0, 0, 0, .12) 46px 48px);
+}
+header { text-align: center; color: var(--areia); padding: 28px 16px 8px; }
+h1 { margin: 0; font: 700 34px/1.1 Georgia, 'Times New Roman', serif; letter-spacing: .5px; }
+h1 span { color: #8fbf7a; font-style: italic; }
+header p { margin: 6px 0 0; color: #c9b896; }
 main { max-width: 480px; margin: 0 auto; padding: 16px; }
-.cartao { background: var(--papel); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-h2 { margin: 0 0 12px; font-size: 18px; }
+.cartao { background: var(--areia); border-radius: 10px; padding: 16px; margin-bottom: 16px; border-top: 5px solid var(--folha); }
+h2 { margin: 0 0 12px; font: 700 19px Georgia, serif; }
 .grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.dias { grid-template-columns: repeat(3, 1fr); margin-bottom: 12px; }
-button, .botao { font: inherit; border: 2px solid var(--tinta); background: #fff; color: var(--tinta); border-radius: 8px; padding: 10px 6px; cursor: pointer; text-align: center; text-decoration: none; display: block; }
-button[aria-pressed="true"] { background: var(--tinta); color: var(--papel); }
-button:disabled { border-color: #d4cabc; color: #b3a898; background: transparent; cursor: default; text-decoration: line-through; }
-.principal { width: 100%; margin-top: 12px; background: var(--ouro); border-color: var(--ouro); color: var(--tinta); font-weight: 700; }
-input { font: inherit; width: 100%; padding: 10px; border: 2px solid var(--tinta); border-radius: 8px; margin-top: 12px; }
-.status { font-weight: 700; }
-.status.ok { color: var(--ok); }
-.pedido { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-top: 1px solid #ddd2c2; }
-.pedido:first-of-type { border-top: 0; }
+.dias { margin-bottom: 12px; }
+button, .botao { font: inherit; border: 2px solid var(--tinta); background: #fffaf0; color: var(--tinta); border-radius: 8px; padding: 10px 6px; cursor: pointer; text-align: center; text-decoration: none; display: block; }
+button[aria-pressed="true"] { background: var(--tinta); color: var(--areia); }
+button:disabled { border-color: #d8c9ac; color: #ad9c82; background: transparent; cursor: default; text-decoration: line-through; }
+.principal { width: 100%; margin-top: 12px; background: var(--terracota); border-color: var(--terracota); color: #fff; font-weight: 700; }
+input { font: inherit; width: 100%; padding: 10px; border: 2px solid var(--tinta); border-radius: 8px; margin-top: 12px; background: #fffaf0; }
+.status { font-weight: 700; display: inline-block; padding: 2px 10px; border-radius: 99px; }
+.status.espera { background: var(--amarelo); color: var(--tinta); }
+.status.ok { background: var(--verde); color: #fff; }
+#meu .status { margin: 0 0 12px; }
+.pedido { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0 8px 10px; border-top: 1px solid #ddcdb0; border-left: 5px solid var(--amarelo); }
+.pedido.ok { border-left-color: var(--verde); }
+.pedido.alvo { background: #fbe9b8; }
 .vazio, .erro { color: var(--apagado); margin: 0; }
 .erro { color: #a3312a; }
-.preview { color: var(--ouro); font-size: 15px; } .preview a { color: var(--papel); }
+.preview { color: #e9c97a; font-size: 15px; }
+.preview a { color: var(--areia); }

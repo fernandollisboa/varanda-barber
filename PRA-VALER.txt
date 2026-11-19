@@ -12,5 +12,5 @@ o preview desliga sozinho quando a URL do banco de verdade entra no lugar do SEU
 3. secrets do repositório: CLOUDFLARE_API_TOKEN (modelo "Edit Cloudflare Workers"), CLOUDFLARE_ACCOUNT_ID,
    SENHA (a do link do barbeiro, 20+ letras), FIREBASE_SECRET.
 4. Pages: Settings › Pages › Source: GitHub Actions. push na main publica o site e sobe o Worker.
-5. o barbeiro abre https://<site>/?barbeiro=<SENHA> uma vez e toca em "receber aviso". depois o link é só ?barbeiro.
+5. o barbeiro (Luique, o único admin; o zap dele já está no const ZAP) abre https://<site>/?barbeiro=<SENHA> uma vez e toca em "receber aviso". depois o link é só ?barbeiro.
    no iPhone o aviso só funciona com o site adicionado à tela de início.

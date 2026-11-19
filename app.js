@@ -4,7 +4,8 @@
 (() => {
   const DB = 'https://SEU-PROJETO-default-rtdb.firebaseio.com';
   const API = 'https://varanda-api.fernando-costa-fd0.workers.dev';
-  const ZAP = ''; // número do barbeiro com DDI, só dígitos (5511999999999); vazio, o zap pergunta pra quem mandar
+  const BARBEIRO = 'Luique'; // o barbeiro, o único admin
+  const ZAP = '557996491143'; // o zap do barbeiro, com DDI, só dígitos
   const HORAS = [9, 10, 11, 12, 13, 14, 15, 16, 17]; // o último corte começa 17h e acaba 18h
   const DIAS = 6; // quantos dias de trabalho aparecem pro cliente (domingo fecha)
 
@@ -31,8 +32,11 @@
   const SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
   const rotulo = (/** @type {string} */ dia) => { const [a, m, d] = dia.split('-').map(Number); return `${SEMANA[new Date(a, m - 1, d).getDay()]} ${d}/${m}`; };
   const hhDe = (/** @type {string} */ h) => +h.slice(1) + 'h';
-  const proximosDias = () => {
-    const r = [], d = new Date(); d.setHours(12);
+  // passou do último horário, o dia de hoje sai da agenda do cliente (o barbeiro ainda vê os de hoje)
+  const proximosDias = (/** @type {boolean} */ pulaHojeSeTarde = false) => {
+    const r = [], d = new Date();
+    if (pulaHojeSeTarde && d.getHours() >= HORAS[HORAS.length - 1]) d.setDate(d.getDate() + 1);
+    d.setHours(12);
     while (r.length < DIAS) { if (d.getDay() !== 0) r.push(iso(d)); d.setDate(d.getDate() + 1); }
     return r;
   };
@@ -71,7 +75,7 @@
   /** @type {Record<string, Pedido>} */ let ocupados = {};
 
   async function cliente() {
-    const dias = proximosDias();
+    const dias = proximosDias(true);
     dia ||= dias[0];
     ocupados = await lePedidos(dia).catch(() => ({}));
     const agora = new Date(), hoje = iso(agora);
@@ -81,10 +85,10 @@
     if (ultimo && ehDia(ultimo.dia) && ehHora(ultimo.hora) && ultimo.dia >= hoje) {
       const p = (ultimo.dia === dia ? ocupados : await lePedidos(ultimo.dia).catch(() => ({})))[ultimo.hora];
       if (p) meu = `<section class="cartao" id="meu"><h2>seu horário: ${rotulo(ultimo.dia)} às ${hhDe(ultimo.hora)}</h2>
-        <p class="status${p.ok ? ' ok' : ''}">${p.ok ? 'confirmado pelo barbeiro ✔' : 'esperando o barbeiro aceitar'}</p>
+        <p class="status ${p.ok ? 'ok' : 'espera'}">${p.ok ? 'confirmado pelo barbeiro ✔' : 'esperando o barbeiro aceitar'}</p>
         <a class="botao" id="zap" target="_blank" rel="noopener" href="https://wa.me/${ZAP}?text=${encodeURIComponent(
-          `Oi! Pedi corte na Varanda Barber ${rotulo(ultimo.dia)} às ${hhDe(ultimo.hora)} (${p.nome}). Aceita aqui: ${location.origin}${location.pathname}?barbeiro`,
-        )}">mandar pro barbeiro no zap</a></section>`;
+          `Oi! Pedi corte na Varanda Barber ${rotulo(ultimo.dia)} às ${hhDe(ultimo.hora)} (${p.nome}). Aceita aqui: ${location.origin}${location.pathname}?barbeiro&pedido=${ultimo.dia}/${ultimo.hora}`,
+        )}">mandar pro ${BARBEIRO} no zap</a></section>`;
     }
     const livre = (/** @type {number} */ h) => { const k = 'h' + String(h).padStart(2, '0'); return !ocupados[k] && !(dia === hoje && h <= agora.getHours()); };
     $app.innerHTML = `${meu}<section class="cartao"><h2>escolhe o dia</h2>
@@ -113,10 +117,11 @@
   async function barbeiro() {
     const dias = proximosDias();
     const todos = await Promise.all(dias.map(d => lePedidos(d).catch(() => ({}))));
-    const linhas = dias.flatMap((d, i) => Object.entries(todos[i]).sort().map(([h, p]) => `<div class="pedido">
+    // na ordem do horário, de cima pra baixo; o pedido que veio pelo zap (&pedido=) fica marcado
+    const linhas = dias.flatMap((d, i) => Object.keys(todos[i]).sort().map(h => [h, todos[i][h]]).map(([h, p]) => `<div class="pedido ${p.ok ? 'ok' : 'espera'}${alvoZap === d + '/' + h ? ' alvo' : ''}">
       <span>${rotulo(d)} ${hhDe(h)} · ${esc(p.nome)}</span>
       ${p.ok ? '<span class="status ok">aceito ✔</span>' : `<button data-aceita="${d}/${h}">aceitar</button>`}</div>`));
-    $app.innerHTML = `<section class="cartao"><h2>pedidos</h2>${linhas.join('') || '<p class="vazio">nenhum pedido ainda</p>'}
+    $app.innerHTML = `<section class="cartao"><h2>agenda do ${BARBEIRO}</h2>${linhas.join('') || '<p class="vazio">nenhum pedido ainda</p>'}
       <p class="erro" id="erro"></p></section>
       <section class="cartao"><button class="principal" id="aviso">receber aviso de pedido no celular</button></section>`;
   }
@@ -145,6 +150,7 @@
   // ---------- começo ----------
   const q = new URLSearchParams(location.search);
   const ehBarbeiro = q.has('barbeiro');
+  const alvoZap = q.get('pedido') || '';
   if (q.get('barbeiro')) { const g = guarda(); g.senha = q.get('barbeiro'); grava(g); history.replaceState(null, '', '?barbeiro'); }
 
   $app.addEventListener('click', e => {

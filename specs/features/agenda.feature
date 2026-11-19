@@ -32,3 +32,12 @@ Funcionalidade: Agendar corte na Varanda
   Cenário: o barbeiro liga o aviso pelo link dele
     Quando o barbeiro liga o aviso no celular pelo link dele
     Então aparece "aviso ligado"
+
+  Cenário: depois do último horário, a agenda do cliente já começa amanhã
+    Dado que hoje é terça, 10/3, às 18h
+    Quando Bruno abre o link
+    Então o primeiro dia da agenda é "qua 11/3"
+
+  Cenário: o pedido vai pro zap do Luique com o link pra aceitar
+    Quando Ana pede o horário de 10h de hoje
+    Então o botão do zap manda pro Luique o link do pedido de 10h de hoje
