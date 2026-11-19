@@ -1,5 +1,5 @@
 // o Firebase em memória, com as regras do database.rules.json. responde(método, caminho, auth, corpo) → { status, corpo }
-const DIA = /^20\d{2}-[01]\d-[0-3]\d$/, HORA = /^h(09|1[0-7])$/;
+const DIA = /^20\d{2}-[01]\d-[0-3]\d$/, HORA = /^h(09|1[0-8])(00|30)$/;
 
 class Banco {
   constructor() { this.pedidos = {}; this.listagens = 0; }

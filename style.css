@@ -49,3 +49,20 @@ input:focus { border-color: var(--musgo); }
 .passos li { flex: 1; padding-top: 8px; border-top: 4px solid var(--linha); font-size: 13px; color: var(--apagado); text-transform: uppercase; letter-spacing: .5px; }
 .passos li.feito { border-top-color: var(--musgo); color: var(--musgo); }
 .passos li.agora { border-top-color: var(--escuro); color: var(--escuro); font-weight: 700; }
+
+/* as poltronas (o passo da hora): fileiras de quatro, curvadas como sala de cinema (as do meio mais pra trás) */
+.turno { font: 700 12px system-ui; letter-spacing: .12em; text-transform: uppercase; color: var(--musgo); margin: 10px 0 2px; padding-bottom: 4px; border-bottom: 1px solid var(--claro); }
+.turno i { font-style: normal; font-weight: 500; letter-spacing: .03em; text-transform: none; color: var(--apagado); }
+.salao { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 4px; padding-bottom: 10px; }
+.salao .pol:nth-child(4n+2), .salao .pol:nth-child(4n+3) { transform: translateY(10px); }
+button.pol { flex-direction: column; gap: 0; min-height: 0; border: 0; padding: 4px 0; background: none; border-radius: 10px; }
+.pol svg { width: 36px; height: 45px; }
+.pol span { font-size: 19px; line-height: 1.2; padding: 0 6px; border-radius: 6px; }
+.pol .c { fill: var(--bg); stroke: var(--musgo); stroke-width: 2.6; }
+.pol .p { fill: var(--musgo); }
+.pol:active .c, .pol[aria-pressed="true"] .c { fill: var(--escuro); stroke: var(--escuro); }
+.pol[aria-pressed="true"] span { background: var(--escuro); color: #fff; }
+.pol:disabled { text-decoration: none; }
+.pol:disabled .c { fill: var(--claro); stroke: #c3c9b6; }
+.pol:disabled .p { fill: #c3c9b6; }
+.pol:disabled span { color: #b3b9a6; text-decoration: line-through; }

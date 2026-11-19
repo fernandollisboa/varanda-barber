@@ -5,7 +5,11 @@
   const DB = 'https://varanda-417d1-default-rtdb.firebaseio.com';
   const BARBEIRO = 'Luique'; // o barbeiro, o único admin
   const ZAP = '557996491143'; // o zap do barbeiro, com DDI, só dígitos
-  const HORAS = [9, 10, 11, 12, 13, 14, 15, 16, 17]; // o último corte começa 17h e acaba 18h
+  // de 30 em 30 minutos, das 9:00 às 18:30 (o último corte acaba 19h). a chave no banco é h + hhmm: h0930
+  const HORAS = Array.from({ length: 20 }, (_, i) => 'h' + String(9 + Math.floor(i / 2)).padStart(2, '0') + (i % 2 ? '30' : '00'));
+  const MANHA = HORAS.filter(h => h < 'h1300'), TARDE = HORAS.filter(h => h >= 'h1300');
+  // a poltrona de barbearia de frente: apoio de cabeça, encosto, braços, assento, coluna e base
+  const POLTRONA = '<svg viewBox="0 0 48 60" aria-hidden="true"><rect class="c" x="18" y="2" width="12" height="6" rx="3"/><rect class="c" x="12" y="9" width="24" height="22" rx="5"/><rect class="c" x="5" y="22" width="8" height="12" rx="3"/><rect class="c" x="35" y="22" width="8" height="12" rx="3"/><rect class="c" x="9" y="30" width="30" height="9" rx="4"/><rect class="p" x="21" y="39" width="6" height="11" rx="1"/><ellipse class="p" cx="24" cy="54" rx="15" ry="4"/></svg>';
   const DIAS = 6; // quantos dias de trabalho aparecem pro cliente (domingo fecha)
 
   const $app = /** @type {HTMLElement} */ (document.getElementById('app'));
@@ -17,7 +21,7 @@
   const ic = (/** @type {keyof typeof ICONES} */ n) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONES[n]}</svg>`;
   const esc = (/** @type {string} */ s) => String(s).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
   const ehDia = (/** @type {string} */ d) => /^20\d{2}-[01]\d-[0-3]\d$/.test(d);
-  const ehHora = (/** @type {string} */ h) => /^h(09|1[0-7])$/.test(h);
+  const ehHora = (/** @type {string} */ h) => /^h(09|1[0-8])(00|30)$/.test(h);
 
   /** @typedef {{ nome: string, tel: string, em: number, ok?: boolean }} Pedido */
   /** o que vem do banco é hostil: só passa o formato do pedido */
@@ -37,11 +41,13 @@
   const SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
   const rotulo = (/** @type {string} */ dia) => { const [a, m, d] = dia.split('-').map(Number); return `${SEMANA[new Date(a, m - 1, d).getDay()]} ${d}/${m}`; };
   const telBonito = (/** @type {string} */ t) => `(${t.slice(0, 2)}) ${t.slice(2, -4)}-${t.slice(-4)}`;
-  const hhDe = (/** @type {string} */ h) => +h.slice(1) + 'h';
+  const hhDe = (/** @type {string} */ h) => +h.slice(1, 3) + ':' + h.slice(3);
+  const minutos = (/** @type {string} */ h) => +h.slice(1, 3) * 60 + +h.slice(3);
+  const agoraMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
   // passou do último horário, o dia de hoje sai da agenda do cliente (o barbeiro ainda vê os de hoje)
   const proximosDias = (/** @type {boolean} */ pulaHojeSeTarde = false) => {
     const r = [], d = new Date();
-    if (pulaHojeSeTarde && d.getHours() >= HORAS[HORAS.length - 1]) d.setDate(d.getDate() + 1);
+    if (pulaHojeSeTarde && agoraMin() >= minutos(HORAS[HORAS.length - 1])) d.setDate(d.getDate() + 1);
     d.setHours(12);
     while (r.length < DIAS) { if (d.getDay() !== 0) r.push(iso(d)); d.setDate(d.getDate() + 1); }
     return r;
@@ -59,7 +65,7 @@
   async function meuPedido() {
     const ultimo = (guarda().meus || []).slice(-1)[0], agora = new Date(), hoje = iso(agora);
     if (!ultimo || !ehDia(ultimo.dia) || !ehHora(ultimo.hora) || ultimo.dia < hoje) return null;
-    if (ultimo.dia === hoje && +ultimo.hora.slice(1) < agora.getHours()) return null;
+    if (ultimo.dia === hoje && minutos(ultimo.hora) + 30 <= agoraMin()) return null;
     const p = (await lePedidos(ultimo.dia))[ultimo.hora];
     return p ? { dia: ultimo.dia, hora: ultimo.hora, p } : null;
   }
@@ -89,10 +95,14 @@
     if (passo === 'dia') corpo = `<h2>que dia?</h2>
       <div class="grade">${proximosDias(true).map(d => `<button data-dia="${d}">${rotulo(d)}</button>`).join('')}</div>`;
     if (passo === 'hora') {
-      const ocupados = await lePedidos(dia).catch(() => ({})), agora = new Date(), hoje = iso(agora);
-      const livre = (/** @type {number} */ h) => !ocupados[hk(h)] && !(dia === hoje && h <= agora.getHours());
+      const ocupados = await lePedidos(dia).catch(() => ({})), hoje = iso(new Date());
+      const livre = (/** @type {string} */ h) => !ocupados[h] && !(dia === hoje && minutos(h) <= agoraMin());
+      // as poltronas em fileiras de quatro, curvadas como sala de cinema; um bloco pra manhã, outro pra tarde
+      const salao = (/** @type {string[]} */ hs) => `<div class="salao">${hs.map(h => `<button class="pol" data-hora="${h}"${livre(h) ? '' : ' disabled'}>${POLTRONA}<span>${hhDe(h)}</span></button>`).join('')}</div>`;
+      const conta = (/** @type {string[]} */ hs) => hs.filter(livre).length;
       corpo = `<h2>que horas?</h2><p class="oi">${rotulo(dia)}</p>
-      <div class="grade">${HORAS.map(h => `<button data-hora="${hk(h)}"${livre(h) ? '' : ' disabled'}>${h}h</button>`).join('')}</div>
+      <p class="turno">manhã <i>${conta(MANHA)} livres</i></p>${salao(MANHA)}
+      <p class="turno">tarde <i>${conta(TARDE)} livres</i></p>${salao(TARDE)}
       <button class="link" data-volta="dia">voltar</button>`;
     }
     if (passo === 'confirmar') corpo = `<h2>${rotulo(dia)} às ${hhDe(hora)}</h2>
@@ -103,7 +113,6 @@
     $modal.innerHTML = `<div class="caixa">${trilha}${corpo}${remarcando ? '<button class="link" id="volta">deixa como está</button>' : ''}<p class="erro" id="erro"></p></div>`;
     $modal.hidden = false;
   }
-  const hk = (/** @type {number} */ h) => 'h' + String(h).padStart(2, '0');
   const erro = (/** @type {string} */ t) => ($('erro').textContent = t);
 
   async function confirma() {

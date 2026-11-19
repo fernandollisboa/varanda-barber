@@ -1,7 +1,7 @@
 # language: pt
 Funcionalidade: Agendar corte na Varanda
   Na chegada, um pop-up no meio da tela pede em três passos: o dia (segunda a sábado), a hora
-  (9h às 18h) e confirmar, com nome e zap. O horário só vale quando o barbeiro aceita pela agenda dele (?admin; por enquanto sem senha).
+  (poltronas de 30 em 30 minutos, das 9:00 às 18:30, manhã e tarde) e confirmar, com nome e zap. O horário só vale quando o barbeiro aceita pela agenda dele (?admin; por enquanto sem senha).
 
   Contexto:
     Dado que hoje é terça, 10/3, às 8h
@@ -9,6 +9,10 @@ Funcionalidade: Agendar corte na Varanda
   Cenário: o cliente marca tudo no pop-up e fica esperando o barbeiro
     Quando Ana marca o horário de 10h de hoje
     Então Ana vê "esperando o barbeiro aceitar"
+
+  Cenário: dá pra pegar meia hora
+    Quando Ana marca o horário das "10:30" de hoje
+    Então Ana vê "às 10:30"
 
   Cenário: na chegada, o pop-up já pergunta o dia
     Quando Bruno abre o link
@@ -37,7 +41,7 @@ Funcionalidade: Agendar corte na Varanda
   Cenário: remarcar troca o horário e libera o antigo
     Dado que Ana pediu o horário de 10h de hoje
     Quando Ana remarca pro horário de 11h de hoje
-    Então Ana vê "às 11h"
+    Então Ana vê "às 11:00"
     E na agenda do barbeiro Ana está só às 11h
 
   Cenário: o pedido vai pro zap do Luique com o link pra aceitar
@@ -55,6 +59,6 @@ Funcionalidade: Agendar corte na Varanda
     Então Ana vê "confirmado pelo barbeiro"
 
   Cenário: depois do último horário, o primeiro dia já é amanhã
-    Dado que hoje é terça, 10/3, às 18h
+    Dado que hoje é terça, 10/3, às 19h
     Quando Bruno abre o link
     Então o primeiro dia é "qua 11/3"
