@@ -9,16 +9,10 @@
   const DIAS = 6; // quantos dias de trabalho aparecem pro cliente (domingo fecha)
 
   const $app = /** @type {HTMLElement} */ (document.getElementById('app'));
-  // ícones de traço, na cor do texto
+  // os dois ícones que ajudam: o do zap e o de ok
   const ICONES = {
-    tesoura: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/>',
-    dia: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
-    hora: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-    pessoa: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
     zap: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M9 10c0 3 2 5 5 5l1.2-1.2-2-1-.9.6c-.8-.4-1.4-1-1.8-1.8l.6-.9-1-2L9 10z"/>',
     ok: '<path d="M20 6 9 17l-5-5"/>',
-    remarca: '<path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/>',
-    lapis: '<path d="M17 3a2.8 2.8 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
   };
   const ic = (/** @type {keyof typeof ICONES} */ n) => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONES[n]}</svg>`;
   const esc = (/** @type {string} */ s) => String(s).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
@@ -56,82 +50,81 @@
   const lePedidos = async (/** @type {string} */ dia) => clean(await (await fetch(`${DB}/pedidos/${dia}.json`)).json());
 
   // ---------- cliente ----------
+  // tudo num pop-up, uma pergunta por vez: quem (nome e zap) → dia → hora. com pedido em aberto, só o pedido na tela
+  const $modal = /** @type {HTMLElement} */ (document.getElementById('modal'));
+  const $ = (/** @type {string} */ id) => /** @type {HTMLInputElement} */ (document.getElementById(id));
   let dia = '', hora = '', remarcando = false;
-  /** @type {Record<string, Pedido>} */ let ocupados = {};
+
+  /** o pedido em aberto deste aparelho, se ainda vale: de hoje em diante, e se for hoje, a hora não passou */
+  async function meuPedido() {
+    const ultimo = (guarda().meus || []).slice(-1)[0], agora = new Date(), hoje = iso(agora);
+    if (!ultimo || !ehDia(ultimo.dia) || !ehHora(ultimo.hora) || ultimo.dia < hoje) return null;
+    if (ultimo.dia === hoje && +ultimo.hora.slice(1) < agora.getHours()) return null;
+    const p = (await lePedidos(ultimo.dia))[ultimo.hora];
+    return p ? { dia: ultimo.dia, hora: ultimo.hora, p } : null;
+  }
 
   async function cliente() {
-    const dias = proximosDias(true);
-    dia ||= dias[0];
-    ocupados = await lePedidos(dia).catch(() => ({}));
-    const agora = new Date(), hoje = iso(agora);
-    const meus = guarda().meus || [];
-    const ultimo = meus[meus.length - 1];
-    let meu = '';
-    // o pedido em aberto: de hoje em diante, e se for hoje, a hora ainda não passou
-    if (ultimo && ehDia(ultimo.dia) && ehHora(ultimo.hora) && ultimo.dia >= hoje && !(ultimo.dia === hoje && +ultimo.hora.slice(1) < agora.getHours())) {
-      const p = (ultimo.dia === dia ? ocupados : await lePedidos(ultimo.dia).catch(() => ({})))[ultimo.hora];
-      if (p) meu = `<section class="cartao" id="meu"><h2>${ic('tesoura')} seu horário</h2>
-        <p class="quando">${ic('dia')} ${rotulo(ultimo.dia)} <span>${ic('hora')} às ${hhDe(ultimo.hora)}</span></p>
-        <p class="status ${p.ok ? 'ok' : 'espera'}">${p.ok ? ic('ok') + ' confirmado pelo barbeiro' : ic('hora') + ' esperando o barbeiro aceitar'}</p>
-        <a class="botao" id="zap" target="_blank" rel="noopener" href="https://wa.me/${ZAP}?text=${encodeURIComponent(
-          `Oi! Pedi corte na Varanda Barber ${rotulo(ultimo.dia)} às ${hhDe(ultimo.hora)} (${p.nome}). Aceita aqui: ${location.origin}${location.pathname}?admin&pedido=${ultimo.dia}/${ultimo.hora}`,
-        )}">${ic('zap')} mandar pro ${BARBEIRO} no zap</a>
-        ${remarcando ? '<button id="volta">deixa como está</button>' : `<button id="remarca">${ic('remarca')} remarcar</button>`}</section>`;
-    }
-    // com pedido em aberto, só o pedido: outro horário é remarcar
-    if (meu && !remarcando) return ($app.innerHTML = meu);
+    const meu = await meuPedido().catch(() => null);
     if (!meu) remarcando = false;
-    const livre = (/** @type {number} */ h) => { const k = 'h' + String(h).padStart(2, '0'); return !ocupados[k] && !(dia === hoje && h <= agora.getHours()); };
-    const g = guarda();
-    const eu = g.nome ? `<button class="eu" id="eu">${ic('pessoa')} ${esc(g.nome)} · ${telBonito(g.tel || '')} ${ic('lapis')}</button>` : '';
-    $app.innerHTML = `${meu}${eu}<section class="cartao"><h2>${ic('dia')} ${remarcando ? 'escolhe o novo dia' : 'escolhe o dia'}</h2>
-      <div class="grade dias">${dias.map(d => `<button data-dia="${d}" aria-pressed="${d === dia}">${rotulo(d)}</button>`).join('')}</div>
-      <h2>${ic('hora')} e a hora</h2>
-      <div class="grade">${HORAS.map(h => { const k = 'h' + String(h).padStart(2, '0');
-        return `<button data-hora="${k}" aria-pressed="${k === hora}"${livre(h) ? '' : ' disabled'}>${h}h</button>`; }).join('')}</div>
-      <button class="principal" id="pede">${ic('tesoura')} pedir horário</button><p class="erro" id="erro"></p></section>`;
+    $app.innerHTML = meu ? `<section class="cartao" id="meu"><h2>seu horário</h2>
+        <p class="quando">${rotulo(meu.dia)} às ${hhDe(meu.hora)}</p>
+        <p class="status ${meu.p.ok ? 'ok' : 'espera'}">${meu.p.ok ? ic('ok') + ' confirmado pelo barbeiro' : 'esperando o barbeiro aceitar'}</p>
+        <a class="botao principal" id="zap" target="_blank" rel="noopener" href="https://wa.me/${ZAP}?text=${encodeURIComponent(
+          `Oi! Pedi corte na Varanda Barber ${rotulo(meu.dia)} às ${hhDe(meu.hora)} (${meu.p.nome}). Aceita aqui: ${location.origin}${location.pathname}?admin&pedido=${meu.dia}/${meu.hora}`,
+        )}">${ic('zap')} mandar pro ${BARBEIRO} no zap</a>
+        <button id="remarca">remarcar</button></section>`
+      : '';
+    if (meu && !remarcando) return fecha();
+    await abre(guarda().nome && guarda().tel ? 'dia' : 'quem');
   }
 
-  // a chegada: um pop-up pede nome e zap uma vez; o aparelho lembra (o botão com o nome troca)
-  const $modal = /** @type {HTMLElement} */ (document.getElementById('modal'));
-  function quemE() {
+  const fecha = () => { $modal.hidden = true; $modal.innerHTML = ''; };
+  async function abre(/** @type {string} */ passo) {
     const g = guarda();
-    $modal.innerHTML = `<form class="caixa" id="quem" novalidate>
-      <div class="selo"><span class="marca"></span></div>
-      <h2>bora marcar seu corte?</h2>
-      <p>pro ${BARBEIRO} saber quem é e te chamar no zap</p>
-      <label class="campo">${ic('pessoa')}<input id="nome" maxlength="40" placeholder="seu nome" autocomplete="given-name" value="${esc(g.nome || '')}"></label>
-      <label class="campo">${ic('zap')}<input id="tel" type="tel" inputmode="numeric" maxlength="16" placeholder="seu WhatsApp com DDD" autocomplete="tel-national" value="${esc(g.tel || '')}"></label>
-      <button class="principal">${ic('ok')} continuar</button><p class="erro" id="erroQuem"></p></form>`;
+    let corpo = '';
+    if (passo === 'quem') corpo = `<h2>bora marcar seu corte?</h2>
+      <input id="nome" maxlength="40" placeholder="seu nome" autocomplete="given-name" value="${esc(g.nome || '')}">
+      <input id="tel" type="tel" inputmode="numeric" maxlength="16" placeholder="seu WhatsApp com DDD" autocomplete="tel-national" value="${esc(g.tel || '')}">
+      <button class="principal" id="segue">continuar</button>`;
+    if (passo === 'dia') corpo = `<h2>que dia?</h2>
+      <p class="oi">${esc(g.nome)} · <button class="link" id="trocaQuem">não é você?</button></p>
+      <div class="grade">${proximosDias(true).map(d => `<button data-dia="${d}">${rotulo(d)}</button>`).join('')}</div>`;
+    if (passo === 'hora') {
+      const ocupados = await lePedidos(dia).catch(() => ({})), agora = new Date(), hoje = iso(agora);
+      const livre = (/** @type {number} */ h) => !ocupados[hk(h)] && !(dia === hoje && h <= agora.getHours());
+      corpo = `<h2>que horas?</h2>
+      <p class="oi">${rotulo(dia)} · <button class="link" id="trocaDia">outro dia</button></p>
+      <div class="grade">${HORAS.map(h => `<button data-hora="${hk(h)}" aria-pressed="${hk(h) === hora}"${livre(h) ? '' : ' disabled'}>${h}h</button>`).join('')}</div>
+      <button class="principal" id="marca"${hora ? '' : ' disabled'}>${hora ? `marcar ${rotulo(dia)} às ${hhDe(hora)}` : 'escolhe a hora'}</button>`;
+    }
+    $modal.innerHTML = `<div class="caixa">${corpo}${remarcando ? '<button class="link" id="volta">deixa como está</button>' : ''}<p class="erro" id="erro"></p></div>`;
     $modal.hidden = false;
-    /** @type {HTMLInputElement} */ (document.getElementById(g.nome ? 'tel' : 'nome')).focus();
   }
-  $modal.addEventListener('submit', e => {
-    e.preventDefault();
-    const nome = /** @type {HTMLInputElement} */ (document.getElementById('nome')).value.trim();
-    // o zap com DDD, só os números (sem o 55 e sem o 0 da operadora)
-    const tel = /** @type {HTMLInputElement} */ (document.getElementById('tel')).value.replace(/\D/g, '').replace(/^0+/, '').replace(/^55(?=\d{10,11}$)/, '');
-    const erro = /** @type {HTMLElement} */ (document.getElementById('erroQuem'));
-    if (!nome) return (erro.textContent = 'põe seu nome');
-    if (!/^\d{10,11}$/.test(tel)) return (erro.textContent = 'põe seu zap com DDD');
-    const g = guarda(); g.nome = nome; g.tel = tel; grava(g);
-    $modal.hidden = true;
-    cliente();
-  });
+  const hk = (/** @type {number} */ h) => 'h' + String(h).padStart(2, '0');
+  const erro = (/** @type {string} */ t) => ($('erro').textContent = t);
 
-  async function pede() {
-    const erro = /** @type {HTMLElement} */ (document.getElementById('erro'));
-    if (!hora) return (erro.textContent = 'escolhe uma hora');
-    const { nome, tel } = guarda();
-    if (!nome || !tel) return quemE();
-    const r = await fetch(`${DB}/pedidos/${dia}/${hora}.json`, { method: 'PUT', body: JSON.stringify({ nome, tel, em: { '.sv': 'timestamp' } }) }).catch(() => null);
-    if (!r || !r.ok) { hora = ''; await cliente(); return (/** @type {HTMLElement} */ (document.getElementById('erro')).textContent = 'esse horário acabou de sair, escolhe outro'); }
-    const g = guarda(), velho = (g.meus || []).slice(-1)[0];
+  function segue() {
+    const nome = $('nome').value.trim();
+    // o zap com DDD, só os números (sem o 55 e sem o 0 da operadora)
+    const tel = $('tel').value.replace(/\D/g, '').replace(/^0+/, '').replace(/^55(?=\d{10,11}$)/, '');
+    if (!nome) return erro('põe seu nome');
+    if (!/^\d{10,11}$/.test(tel)) return erro('põe seu zap com DDD');
+    const g = guarda(); g.nome = nome; g.tel = tel; grava(g);
+    abre('dia');
+  }
+
+  async function marca() {
+    const g = guarda();
+    const r = await fetch(`${DB}/pedidos/${dia}/${hora}.json`, { method: 'PUT', body: JSON.stringify({ nome: g.nome, tel: g.tel, em: { '.sv': 'timestamp' } }) }).catch(() => null);
+    if (!r || !r.ok) { hora = ''; await abre('hora'); return erro('esse horário acabou de sair, escolhe outro'); }
+    const velho = (g.meus || []).slice(-1)[0];
     // remarcou: o horário velho só sai depois que o novo gravou
     if (remarcando && velho && ehDia(velho.dia) && ehHora(velho.hora)) await fetch(`${DB}/pedidos/${velho.dia}/${velho.hora}.json`, { method: 'DELETE' }).catch(() => null);
-    remarcando = false;
-    g.meus = [{ dia, hora }]; grava(g);
-    hora = '';
+    g.meus = [{ dia, hora }];
+    grava(g);
+    remarcando = false; hora = '';
+    fecha();
     await cliente();
   }
 
@@ -143,7 +136,7 @@
     const linhas = dias.flatMap((d, i) => Object.keys(todos[i]).sort().map(h => [h, todos[i][h]]).map(([h, p]) => `<div class="pedido ${p.ok ? 'ok' : 'espera'}${alvoZap === d + '/' + h ? ' alvo' : ''}">
       <span>${rotulo(d)} ${hhDe(h)} · ${esc(p.nome)}${p.tel ? `<br><a class="tel" href="https://wa.me/55${p.tel}" target="_blank" rel="noopener">${ic('zap')} ${telBonito(p.tel)}</a>` : ''}</span>
       ${p.ok ? `<span class="status ok">${ic('ok')} aceito</span>` : `<button data-aceita="${d}/${h}">${ic('ok')} aceitar</button>`}</div>`));
-    $app.innerHTML = `<section class="cartao"><h2>${ic('dia')} agenda do ${BARBEIRO}</h2>${linhas.join('') || '<p class="vazio">nenhum pedido ainda</p>'}
+    $app.innerHTML = `<section class="cartao"><h2>agenda do ${BARBEIRO}</h2>${linhas.join('') || '<p class="vazio">nenhum pedido ainda</p>'}
       <p class="erro" id="erro"></p></section>`;
   }
 
@@ -159,18 +152,25 @@
   const ehBarbeiro = q.has('admin') || q.has('barbeiro'); // ?barbeiro é o nome antigo
   const alvoZap = q.get('pedido') || '';
 
-  $app.addEventListener('click', e => {
+  document.body.addEventListener('click', e => {
     const b = /** @type {HTMLElement} */ (e.target).closest('button');
     if (!b) return;
-    if (b.dataset.dia) { dia = b.dataset.dia; hora = ''; cliente(); }
-    else if (b.dataset.hora) { hora = b.dataset.hora; $app.querySelectorAll('[data-hora]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }
-    else if (b.id === 'pede') pede();
-    else if (b.id === 'eu') quemE();
-    else if (b.id === 'remarca' || b.id === 'volta') { remarcando = b.id === 'remarca'; hora = ''; cliente(); }
-    else if (b.dataset.aceita) aceita(b.dataset.aceita);
+    if (b.dataset.aceita) return aceita(b.dataset.aceita);
+    if (b.dataset.dia) { dia = b.dataset.dia; hora = ''; abre('hora'); }
+    else if (b.dataset.hora) {
+      // escolher a hora só marca o botão: sem ler o banco de novo
+      hora = b.dataset.hora;
+      $modal.querySelectorAll('[data-hora]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      const m = $('marca'); m.disabled = false; m.textContent = `marcar ${rotulo(dia)} às ${hhDe(hora)}`;
+    }
+    else if (b.id === 'segue') segue();
+    else if (b.id === 'marca') marca();
+    else if (b.id === 'trocaQuem') abre('quem');
+    else if (b.id === 'trocaDia') { hora = ''; abre('dia'); }
+    else if (b.id === 'remarca') { remarcando = true; cliente(); }
+    else if (b.id === 'volta') { remarcando = false; hora = ''; cliente(); }
   });
 
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
-  if (!ehBarbeiro && !guarda().nome) quemE();
   (ehBarbeiro ? barbeiro() : cliente()).catch(() => ($app.innerHTML = '<p class="erro cartao">sem conexão, tenta de novo</p>'));
 })();

@@ -13,7 +13,7 @@ class Mundo {
     await ctx.route(servir.DB_FALSO + '/**', async r => { const q = r.request(), u = new URL(q.url());
       const res = this.banco.responde(q.method(), u.pathname, u.searchParams.get('auth'), q.postData());
       await r.fulfill({ status: res.status, contentType: 'application/json', body: JSON.stringify(res.corpo) }); });
-    const antes = { ...(this.meus[quem] ? { meus: this.meus[quem], nome: quem, tel: '79999990000' } : {}) };
+    const antes = { ...(this.meus[quem] || this.quemJa === quem ? { nome: quem, tel: '79999990000' } : {}), ...(this.meus[quem] ? { meus: this.meus[quem] } : {}) };
     // o que o aparelho já tinha antes desta visita: só na primeira carga da aba
     if (Object.keys(antes).length) await ctx.addInitScript(v => { if (sessionStorage.getItem('__antes')) return; sessionStorage.setItem('__antes', '1'); localStorage.setItem('varanda', v); }, JSON.stringify(antes));
     const p = await ctx.newPage(); p.on('pageerror', e => this.erros.push(e.message));
@@ -34,30 +34,40 @@ const HOJE = '2026-03-10', hora = h => 'h' + String(h).padStart(2, '0');
 Dado('que hoje é terça, 10\\/3, às {int}h', ({ mundo }, h) => { mundo.agora = Date.parse(`${HOJE}T${String(h).padStart(2, '0')}:00:00-03:00`); });
 Dado('que {word} pediu o horário de {int}h de hoje', ({ mundo }, quem, h) => { mundo.banco.pede(HOJE, hora(h), quem); mundo.meus[quem] = [{ dia: HOJE, hora: hora(h) }]; });
 
-Quando('{word} pede o horário de {int}h de hoje', async ({ mundo }, quem, h) => {
-  const p = await mundo.abre(quem);
-  await seApresenta(p, quem, '(79) 99999-1234');
-  await p.getByRole('button', { name: `${h}h`, exact: true }).click();
-  await p.getByRole('button', { name: 'pedir horário' }).click();
-  await p.locator('#meu').waitFor(); // o pedido gravou
-});
-Quando('{word} abre o link', ({ mundo }, quem) => mundo.abre(quem));
-// o pop-up da chegada: nome e zap
+// o pop-up: nome e zap (só se o aparelho ainda não sabe), o dia, a hora e marcar
 const seApresenta = async (p, nome, tel) => {
   await p.getByPlaceholder('seu nome').fill(nome);
   await p.getByPlaceholder('seu WhatsApp com DDD').fill(tel);
   await p.getByRole('button', { name: 'continuar' }).click();
 };
-Quando('{word} entra e diz o nome e o zap', async ({ mundo }, quem) => seApresenta(await mundo.abre(quem), quem, '79999991234'));
-Quando('{word} entra só com o nome', async ({ mundo }, quem) => seApresenta(await mundo.abre(quem), quem, ''));
-Então('aparece o pop-up pedindo nome e WhatsApp', async ({ mundo }) => {
+const escolhe = async (p, h) => {
+  await p.getByRole('button', { name: 'ter 10/3' }).click();
+  await p.getByRole('button', { name: `${h}h`, exact: true }).click();
+  await p.getByRole('button', { name: new RegExp(`^marcar .+ às ${h}h$`) }).click();
+  await expect(p.locator('#meu')).toContainText(`às ${h}h`); // o pedido gravou
+};
+Dado('que {word} já deu o nome e o zap', ({ mundo }, quem) => { mundo.quemJa = quem; });
+
+Quando('{word} marca o horário de {int}h de hoje', async ({ mundo }, quem, h) => {
+  const p = await mundo.abre(quem);
+  await seApresenta(p, quem, '(79) 99999-1234');
+  await escolhe(p, h);
+});
+Quando('{word} abre o link', ({ mundo }, quem) => mundo.abre(quem));
+Quando('{word} chega e escolhe o dia de hoje', async ({ mundo }, quem) => {
+  const p = await mundo.abre(quem);
+  await seApresenta(p, quem, '79999991234');
+  await p.getByRole('button', { name: 'ter 10/3' }).click();
+});
+Quando('{word} chega e diz o nome e o zap', async ({ mundo }, quem) => seApresenta(await mundo.abre(quem), quem, '79999991234'));
+Quando('{word} chega só com o nome', async ({ mundo }, quem) => seApresenta(await mundo.abre(quem), quem, ''));
+Então('o pop-up pergunta o nome e o WhatsApp', async ({ mundo }) => {
   await expect(mundo.p.getByPlaceholder('seu nome')).toBeVisible();
   await expect(mundo.p.getByPlaceholder('seu WhatsApp com DDD')).toBeVisible();
 });
-Então('na próxima vez o pop-up não aparece', async ({ mundo }) => {
-  const p = await mundo.abre(mundo.quem);
-  await expect(p.getByRole('button', { name: 'pedir horário' })).toBeVisible();
-  await expect(p.getByPlaceholder('seu nome')).toBeHidden();
+Então('o pop-up já pergunta o dia', async ({ mundo }) => {
+  await expect(mundo.p.locator('#modal')).toContainText('que dia?');
+  await expect(mundo.p.getByPlaceholder('seu nome')).toHaveCount(0);
 });
 Quando('o barbeiro aceita o pedido de {word} pelo link dele', async ({ mundo }, quem) => {
   const p = await mundo.abre('barbeiro', '?admin');
@@ -70,7 +80,7 @@ Então('{word} vê {string}', async ({ mundo }, quem, texto) => { await expect((
 Então('aparece {string}', ({ mundo }, texto) => expect(mundo.p.locator('body')).toContainText(texto));
 Então('o horário de {int}h está ocupado', ({ mundo }, h) => expect(mundo.p.getByRole('button', { name: `${h}h`, exact: true })).toBeDisabled());
 Então('o horário de {int}h está livre', ({ mundo }, h) => expect(mundo.p.getByRole('button', { name: `${h}h`, exact: true })).toBeEnabled());
-Então('o primeiro dia da agenda é {string}', ({ mundo }, d) => expect(mundo.p.locator('[data-dia]').first()).toHaveText(d));
+Então('o primeiro dia é {string}', ({ mundo }, d) => expect(mundo.p.locator('[data-dia]').first()).toHaveText(d));
 Então('o botão do zap manda pro Luique o link do pedido de {int}h de hoje', async ({ mundo }, h) => {
   const href = await mundo.p.getByRole('link', { name: 'mandar pro Luique no zap' }).getAttribute('href');
   expect(href).toMatch(/^https:\/\/wa\.me\/557996491143\?text=/);
@@ -81,14 +91,14 @@ Então('ele vê o pedido de {word} com o zap {string}', async ({ mundo }, quem, 
   await expect(linha.getByRole('link', { name: tel })).toHaveAttribute('href', 'https://wa.me/55' + tel.replace(/\D/g, ''));
   await expect(linha.getByRole('button', { name: 'aceitar' })).toBeVisible();
 });
-Então('ela vê o pedido e o botão de remarcar', ({ mundo }) => expect(mundo.p.locator('#meu').getByRole('button', { name: 'remarcar' })).toBeVisible());
-Então('não vê a agenda pra pedir outro', ({ mundo }) => expect(mundo.p.getByRole('button', { name: 'pedir horário' })).toHaveCount(0));
+Então('ela vê só o pedido, com o botão de remarcar', async ({ mundo }) => {
+  await expect(mundo.p.locator('#meu').getByRole('button', { name: 'remarcar' })).toBeVisible();
+  await expect(mundo.p.locator('#modal')).toBeHidden();
+});
 Quando('{word} remarca pro horário de {int}h de hoje', async ({ mundo }, quem, h) => {
   const p = await mundo.abre(quem);
   await p.getByRole('button', { name: 'remarcar' }).click();
-  await p.getByRole('button', { name: `${h}h`, exact: true }).click();
-  await p.getByRole('button', { name: 'pedir horário' }).click();
-  await expect(p.locator('#meu')).toContainText(`às ${h}h`);
+  await escolhe(p, h);
 });
 Então('na agenda do barbeiro {word} está só às {int}h', async ({ mundo }, quem, h) => {
   const p = await mundo.abre('barbeiro', '?admin');

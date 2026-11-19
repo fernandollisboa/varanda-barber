@@ -1,3 +1,1 @@
 Saira Extra Condensed Black (fonts/SairaExtraCondensed.woff2): Copyright 2016 The Saira Project Authors. SIL Open Font License 1.1 (https://openfontlicense.org), não MIT.
-Figtree (fonts/Figtree.woff2): Copyright 2022 The Figtree Project Authors. SIL Open Font License 1.1, não MIT.
-DM Mono (fonts/DMMono.woff2): Copyright 2020 The DM Mono Project Authors. SIL Open Font License 1.1, não MIT.
