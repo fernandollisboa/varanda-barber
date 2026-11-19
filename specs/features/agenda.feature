@@ -1,7 +1,7 @@
 # language: pt
 Funcionalidade: Agendar corte na Varanda
   Na chegada, um pop-up no meio da tela pede em três passos: o dia (segunda a sábado), a hora
-  (poltronas de 30 em 30 minutos, das 9:00 às 18:30, manhã e tarde) e confirmar, com nome e zap. O horário só vale quando o barbeiro aceita pela agenda dele (?admin; por enquanto sem senha).
+  (poltronas de 30 em 30 minutos, das 9:00 às 18:30, manhã e tarde) e confirmar, com nome e zap. O horário só vale quando o barbeiro aceita pela agenda dele (?admin), que só abre com a senha dele.
 
   Contexto:
     Dado que hoje é terça, 10/3, às 8h
@@ -67,3 +67,25 @@ Funcionalidade: Agendar corte na Varanda
     Dado que hoje é terça, 10/3, às 19h
     Quando Bruno abre o link
     Então o primeiro dia é "qua 11/3"
+
+  Cenário: o Luique cria a senha pelo link e já cai na agenda
+    Dado que o Luique ainda não criou a senha
+    Quando o Luique abre o link de criar senha e cria "navalha77"
+    Então ele vê a agenda vazia
+
+  Cenário: o link de criar senha só vale uma vez
+    Dado que o Luique já criou a senha
+    Quando alguém abre o link de criar senha e cria "outra1234"
+    Então aparece "a senha já foi criada"
+
+  Cenário: senha errada não abre a agenda
+    Dado que o Luique já criou a senha
+    E que Ana pediu o horário de 10h de hoje
+    Quando alguém abre a agenda e entra com a senha "chute123"
+    Então aparece "senha errada"
+
+  Cenário: com a senha, o Luique entra em qualquer celular
+    Dado que o Luique já criou a senha
+    E que Ana pediu o horário de 10h de hoje
+    Quando o Luique entra na agenda num celular novo com a senha certa
+    Então ele vê a agenda com o pedido de Ana pra aceitar

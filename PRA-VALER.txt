@@ -11,7 +11,8 @@ NÃO precisa: Authentication, Cloudflare.
 
 links:
 - cliente: https://fernandollisboa.github.io/varanda-barber/
-- Luique (agenda, aceita os pedidos): https://fernandollisboa.github.io/varanda-barber/?admin
+- Luique cria a senha (uma vez só, o primeiro que abrir cria): https://fernandollisboa.github.io/varanda-barber/?admin&criar
+- Luique (agenda, aceita os pedidos, pede a senha): https://fernandollisboa.github.io/varanda-barber/?admin
+- esqueceu a senha: Firebase › Realtime Database › Dados › apague o nó senhas; o link de criar volta a valer.
 
-sem login, qualquer um com o link ?admin aceita pedido, e quem souber o endereço do banco lê nome e zap dos
-pedidos de um dia. pra fechar isso depois: login do Luique no Firebase Authentication e a regra do ok só pra conta dele.
+quem souber o endereço do banco lê nome e zap dos pedidos de um dia, e qualquer um apaga pedido (é o remarcar).

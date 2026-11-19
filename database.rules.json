@@ -9,9 +9,32 @@
           "nome": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
           "tel": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{10,11}$/)" },
           "em": { ".validate": "newData.val() == now" },
-          "ok": { ".write": "data.parent().exists()", ".validate": "newData.val() == true" },
+          "ok": {
+            ".write": "data.parent().exists() && newData.parent().parent().parent().parent().child('aceites').child($dia).child($hora).child('em').val() == now",
+            ".validate": "newData.val() == true"
+          },
           "$outro": { ".validate": false }
         }
+      }
+    },
+    "aceites": {
+      "$dia": {
+        "$hora": {
+          ".write": "newData.child('s').isString() && root.child('senhas').child(newData.child('s').val()).exists()",
+          ".validate": "newData.child('em').val() == now"
+        }
+      }
+    },
+    "senhas": {
+      "$s": {
+        ".write": "!root.child('senhas').exists()",
+        ".validate": "newData.val() == true && $s.length >= 6"
+      }
+    },
+    "entradas": {
+      "$s": {
+        ".write": "root.child('senhas').child($s).exists()",
+        ".validate": "newData.val() == now"
       }
     }
   }

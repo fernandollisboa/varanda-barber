@@ -1,7 +1,7 @@
 const { test: base, createBdd } = require('playwright-bdd');
 const { expect } = require('@playwright/test');
 const servir = require('../_serve.cjs');
-const { Banco } = require('../_banco.cjs');
+const { Banco, SENHA } = require('../_banco.cjs');
 
 class Mundo {
   constructor(browser, base) { this.browser = browser; this.base = base; this.banco = new Banco(); this.agora = 0; this.meus = {}; this.abas = {}; this.erros = []; }
@@ -13,7 +13,9 @@ class Mundo {
     await ctx.route(servir.DB_FALSO + '/**', async r => { const q = r.request(), u = new URL(q.url());
       const res = this.banco.responde(q.method(), u.pathname, u.searchParams.get('auth'), q.postData());
       await r.fulfill({ status: res.status, contentType: 'application/json', body: JSON.stringify(res.corpo) }); });
-    const antes = { ...(this.meus[quem] || this.quemJa === quem ? { nome: quem, tel: '79999990000' } : {}), ...(this.meus[quem] ? { meus: this.meus[quem] } : {}) };
+    // o barbeiro dos cenários já criou a senha e entrou neste celular, a não ser que o cenário diga outra coisa
+    if (quem === 'barbeiro' && !this.semSenha) this.banco.senhas.add(SENHA);
+    const antes = { ...(quem === 'barbeiro' && !this.semSenha ? { senha: SENHA } : {}), ...(this.meus[quem] || this.quemJa === quem ? { nome: quem, tel: '79999990000' } : {}), ...(this.meus[quem] ? { meus: this.meus[quem] } : {}) };
     // o que o aparelho já tinha antes desta visita: só na primeira carga da aba
     if (Object.keys(antes).length) await ctx.addInitScript(v => { if (sessionStorage.getItem('__antes')) return; sessionStorage.setItem('__antes', '1'); localStorage.setItem('varanda', v); }, JSON.stringify(antes));
     const p = await ctx.newPage(); p.on('pageerror', e => this.erros.push(e.message));
@@ -113,3 +115,29 @@ Então('aparecem as poltronas da tarde', async ({ mundo }) => {
   await expect(mundo.p.getByRole('button', { name: '13:00', exact: true })).toBeVisible();
   await expect(mundo.p.getByRole('button', { name: '9:00', exact: true })).toBeHidden();
 });
+Dado('que o Luique ainda não criou a senha', ({ mundo }) => { mundo.semSenha = true; });
+Dado('que o Luique já criou a senha', ({ mundo }) => { mundo.semSenha = true; mundo.banco.senhas.add(SENHA); });
+Quando('o Luique abre o link de criar senha e cria {string}', async ({ mundo }, s) => {
+  const p = await mundo.abre('barbeiro', '?admin&criar');
+  await p.getByPlaceholder('nova senha (6 ou mais)').fill(s);
+  await p.getByPlaceholder('repete a senha').fill(s);
+  await p.getByRole('button', { name: 'criar senha' }).click();
+});
+Quando('alguém abre o link de criar senha e cria {string}', async ({ mundo }, s) => {
+  const p = await mundo.abre('intruso', '?admin&criar');
+  await p.getByPlaceholder('nova senha (6 ou mais)').fill(s);
+  await p.getByPlaceholder('repete a senha').fill(s);
+  await p.getByRole('button', { name: 'criar senha' }).click();
+});
+Quando('alguém abre a agenda e entra com a senha {string}', async ({ mundo }, s) => {
+  const p = await mundo.abre('intruso', '?admin');
+  await p.getByPlaceholder('senha').fill(s);
+  await p.getByRole('button', { name: 'entrar' }).click();
+});
+Quando('o Luique entra na agenda num celular novo com a senha certa', async ({ mundo }) => {
+  const p = await mundo.abre('outroCelular', '?admin');
+  await p.getByPlaceholder('senha').fill(SENHA);
+  await p.getByRole('button', { name: 'entrar' }).click();
+});
+Então('ele vê a agenda com o pedido de {word} pra aceitar', ({ mundo }, quem) => expect(mundo.p.locator('.pedido', { hasText: quem }).getByRole('button', { name: 'aceitar' })).toBeVisible());
+Então('ele vê a agenda vazia', ({ mundo }) => expect(mundo.p.locator('main')).toContainText('nenhum pedido ainda'));

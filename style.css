@@ -8,7 +8,9 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.45 system-ui, sans-serif; }
 h1, h2, button, .botao, .quando { font-family: var(--display); font-weight: 900; text-transform: uppercase; letter-spacing: .5px; }
-header { text-align: center; padding: 22px 16px 6px; }
+header { text-align: center; padding: 18px 16px 6px; }
+/* o logo da Varanda (logo.png, a aranha-tesoura), pintado no verde musgo */
+.marca { display: block; margin: 0 auto 6px; height: 56px; aspect-ratio: 309 / 400; background: var(--musgo); -webkit-mask: url(logo.png) center / contain no-repeat; mask: url(logo.png) center / contain no-repeat; }
 h1 { margin: 0; font-size: 34px; line-height: 1; color: var(--escuro); }
 h1 span { color: var(--musgo); }
 main { max-width: 440px; margin: 0 auto; padding: 16px; }

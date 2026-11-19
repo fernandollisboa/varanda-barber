@@ -143,7 +143,42 @@
   }
 
   // ---------- barbeiro ----------
+  // a senha do Luique mora só no banco, como chave de senhas/ (ninguém lê esse nó). o link ?admin&criar cria
+  // a primeira e única; depois, entrar é provar a senha gravando em entradas/<senha>, e aceitar grava o ok junto
+  // com aceites/<dia>/<hora> = { s: senha, em: agora }, numa gravação só: as regras conferem a senha e que o
+  // aceite é dessa mesma gravação
+  const senhaOk = (/** @type {string} */ s) => s.length >= 6 && !/[.$#[\]/]/.test(s);
+  const minhaSenha = () => guarda().senha || '';
+  const prova = (/** @type {string} */ s) =>
+    fetch(`${DB}/entradas/${encodeURIComponent(s)}.json`, { method: 'PUT', body: JSON.stringify({ '.sv': 'timestamp' }) }).then(r => r.ok, () => false);
+
+  function portaria(/** @type {boolean} */ criar, /** @type {string} */ msg = '') {
+    $app.innerHTML = `<section class="cartao"><h2>${criar ? `${BARBEIRO}, cria sua senha` : `agenda do ${BARBEIRO}`}</h2>
+      <input id="senha" type="password" placeholder="${criar ? 'nova senha (6 ou mais)' : 'senha'}" autocomplete="${criar ? 'new-password' : 'current-password'}">
+      ${criar ? '<input id="senha2" type="password" placeholder="repete a senha" autocomplete="new-password">' : ''}
+      <button class="principal" id="${criar ? 'criaSenha' : 'entra'}">${criar ? 'criar senha' : 'entrar'}</button><p class="erro" id="erro">${esc(msg)}</p></section>`;
+  }
+
+  async function criaSenha() {
+    const s = $('senha').value;
+    if (!senhaOk(s)) return erro('6 letras ou mais, sem . $ # [ ] /');
+    if (s !== $('senha2').value) return erro('as duas senhas tão diferentes');
+    const r = await fetch(`${DB}/senhas/${encodeURIComponent(s)}.json`, { method: 'PUT', body: 'true' }).catch(() => null);
+    if (!r || !r.ok) return portaria(false, r ? 'a senha já foi criada: entra com ela' : 'sem conexão, tenta de novo');
+    const g = guarda(); g.senha = s; grava(g);
+    history.replaceState(null, '', '?admin');
+    await barbeiro();
+  }
+
+  async function entra() {
+    const s = $('senha').value;
+    if (!senhaOk(s) || !(await prova(s))) return erro('senha errada');
+    const g = guarda(); g.senha = s; grava(g);
+    await barbeiro();
+  }
+
   async function barbeiro() {
+    if (!minhaSenha()) return portaria(criando);
     const dias = proximosDias();
     const todos = await Promise.all(dias.map(d => lePedidos(d).catch(() => ({}))));
     // na ordem do horário, de cima pra baixo; o pedido que veio pelo zap (&pedido=) fica marcado
@@ -156,20 +191,23 @@
 
   async function aceita(/** @type {string} */ alvo) {
     const [d, h] = alvo.split('/');
-    const r = await fetch(`${DB}/pedidos/${d}/${h}/ok.json`, { method: 'PUT', body: 'true' }).catch(() => null);
-    if (!r || !r.ok) return (/** @type {HTMLElement} */ (document.getElementById('erro')).textContent = 'não deu, tenta de novo');
+    const r = await fetch(`${DB}/.json`, { method: 'PATCH', body: JSON.stringify({ [`pedidos/${d}/${h}/ok`]: true, [`aceites/${d}/${h}`]: { s: minhaSenha(), em: { '.sv': 'timestamp' } } }) }).catch(() => null);
+    if (r?.status === 401) { const g = guarda(); delete g.senha; grava(g); return portaria(false, 'a senha mudou: entra de novo'); }
+    if (!r || !r.ok) return erro('não deu, tenta de novo');
     await barbeiro();
   }
 
   // ---------- começo ----------
   const q = new URLSearchParams(location.search);
   const ehBarbeiro = q.has('admin') || q.has('barbeiro'); // ?barbeiro é o nome antigo
-  const alvoZap = q.get('pedido') || '';
+  const alvoZap = q.get('pedido') || '', criando = q.has('criar');
 
   document.body.addEventListener('click', e => {
     const b = /** @type {HTMLElement} */ (e.target).closest('button');
     if (!b) return;
     if (b.dataset.aceita) return aceita(b.dataset.aceita);
+    if (b.id === 'entra') return entra();
+    if (b.id === 'criaSenha') return criaSenha();
     if (b.dataset.dia) { dia = b.dataset.dia; hora = ''; turno = ''; abre('hora'); }
     else if (b.dataset.turno) {
       // trocar de aba não lê o banco de novo
