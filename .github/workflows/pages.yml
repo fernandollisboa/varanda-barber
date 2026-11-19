@@ -1,0 +1,62 @@
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+      - name: Versiona os assets pra furar o cache do navegador
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          sed -i "s/?v=[^\"]*/?v=${SHA:0:8}/g" index.html
+          grep -o '\(app.js\|style.css\)?v=[^"]*' index.html
+          # o ?v= escrito no index.html é a reserva: se o Pages voltar a publicar a
+          # branch crua, é ele que chega no navegador, e aí precisa ter mudado
+          if git rev-parse HEAD~1 >/dev/null 2>&1 \
+             && git diff --quiet HEAD~1 HEAD -- index.html \
+             && ! git diff --quiet HEAD~1 HEAD -- app.js style.css; then
+            echo "::warning::app.js/style.css mudaram e o ?v= do index.html não; aqui o SHA cobre, mas suba a versão mesmo assim"
+          fi
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+        with:
+          enablement: true
+      - name: Tira o que não é site
+        run: rm -rf servidor specs
+      # um artefato por tentativa: no re-run (o Pages às vezes dá 500) o da tentativa anterior
+      # continua no mesmo run, e com dois de mesmo nome o deploy-pages se recusa
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: .
+          name: github-pages-${{ github.run_attempt }}
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
+      - name: Confere o que ficou no ar
+        env:
+          URL: ${{ steps.deployment.outputs.page_url }}
+          SHA: ${{ github.sha }}
+        run: |
+          for i in $(seq 1 12); do
+            sleep 10
+            if curl -fsS "${URL}?ci=${SHA}" | grep -q "?v=${SHA:0:8}"; then
+              echo "no ar servindo ?v=${SHA:0:8}"; exit 0
+            fi
+          done
+          echo "o site não serviu ?v=${SHA:0:8} em 2 minutos"; exit 1

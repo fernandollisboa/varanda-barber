@@ -1,0 +1,15 @@
+# a API do Varanda Barber. quem sobe é o .github/workflows/servidor.yml (cria o KV e as chaves VAPID na primeira vez)
+name = "varanda-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+FIREBASE_DB = "https://SEU-PROJETO-default-rtdb.firebaseio.com"
+VAPID_SUB = "https://varanda.barber"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "__KV_ID__"
+
+# secrets (wrangler secret put, nunca aqui): SENHA, FIREBASE_SECRET, VAPID_PRIVATE, VAPID_PUBLIC
