@@ -1,1 +1,1 @@
-Squada One (fonts/SquadaOne.woff2): Copyright 2011 Joe Prince. SIL Open Font License 1.1 (https://openfontlicense.org), não MIT.
+Saira Extra Condensed Black (fonts/SairaExtraCondensed.woff2): Copyright 2016 The Saira Project Authors. SIL Open Font License 1.1 (https://openfontlicense.org), não MIT.

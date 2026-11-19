@@ -1,25 +1,24 @@
-/* verde musgo (o do short militar) no branco; a fonte é a Squada One espaçada, com sombra verde clara nos títulos (fonts/, OFL).
+/* verde musgo (o do short militar) no branco; a fonte é a Saira Extra Condensed Black, estreita e bem preta (fonts/, OFL).
    semáforo só no status: amarelo espera, verde confirmado */
-@font-face { font-family: 'Squada One'; src: url(fonts/SquadaOne.woff2) format('woff2'); font-display: swap; }
+@font-face { font-family: 'Saira Extra Condensed'; src: url(fonts/SairaExtraCondensed.woff2) format('woff2'); font-weight: 900; font-display: swap; }
 :root {
   --musgo: #4a5a33; --musgo-escuro: #2f3a20; --musgo-claro: #e9eddf; --branco: #fff; --tinta: #26301a; --apagado: #8a917c;
-  --sombra: #c9d6b0; --amarelo: #f4e7b8; --verde: #5f7f40;
+  --amarelo: #f4e7b8; --verde: #5f7f40;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--branco); color: var(--tinta); font: 17px/1.4 system-ui, sans-serif; }
-h1, h2, button, .botao, .status, .quando { font-family: 'Squada One', system-ui, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: 2px; }
-h1, h2, .quando { text-shadow: 2px 2px 0 var(--sombra); }
+h1, h2, button, .botao, .status, .quando { font-family: 'Saira Extra Condensed', system-ui, sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; }
 header { text-align: center; padding: 24px 16px 4px; }
 .logo { width: 40px; height: 40px; fill: none; stroke: var(--musgo); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-h1 { margin: 0; font-size: clamp(34px, 12.5vw, 50px); letter-spacing: 3px; text-shadow: 3px 3px 0 var(--sombra); line-height: 1; color: var(--musgo-escuro); }
+h1 { margin: 0; font-size: clamp(34px, 12.5vw, 50px); letter-spacing: 1px; line-height: 1; color: var(--musgo-escuro); }
 h1 span { color: var(--musgo); }
 header p { margin: 6px 0 0; color: var(--apagado); }
 main { max-width: 480px; margin: 0 auto; padding: 16px; }
 .cartao { border: 2px solid var(--musgo); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-h2 { margin: 0 0 12px; font-size: 24px; color: var(--musgo-escuro); display: flex; align-items: center; gap: 8px; }
+h2 { margin: 0 0 12px; font-size: 26px; color: var(--musgo-escuro); display: flex; align-items: center; gap: 8px; }
 .grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .dias { margin-bottom: 14px; }
-button, .botao { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 20px; border: 2px solid var(--musgo); background: var(--branco); color: var(--musgo-escuro); border-radius: 8px; padding: 11px 6px; cursor: pointer; text-align: center; text-decoration: none; width: 100%; }
+button, .botao { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 22px; border: 2px solid var(--musgo); background: var(--branco); color: var(--musgo-escuro); border-radius: 8px; padding: 11px 6px; cursor: pointer; text-align: center; text-decoration: none; width: 100%; }
 button[aria-pressed="true"] { background: var(--musgo-escuro); border-color: var(--musgo-escuro); color: var(--branco); }
 button:disabled { border-color: #d9ddd0; color: #b8bdab; background: transparent; cursor: default; text-decoration: line-through; }
 .principal, #zap { background: var(--musgo); color: var(--branco); margin-top: 12px; }
@@ -39,7 +38,7 @@ input { font: inherit; width: 100%; padding: 11px; border: 2px solid var(--musgo
 
 /* ícones */
 .ic { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.quando { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 28px; text-transform: uppercase; color: var(--musgo-escuro); margin: 0 0 12px; }
+.quando { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 32px; text-transform: uppercase; color: var(--musgo-escuro); margin: 0 0 12px; }
 .quando span { display: inline-flex; align-items: center; gap: 8px; }
 .eu { background: var(--musgo-claro); border-color: var(--musgo-claro); color: var(--musgo-escuro); font: 15px system-ui, sans-serif; text-transform: none; letter-spacing: 0; margin-bottom: 16px; justify-content: flex-start; padding: 10px 14px; }
 .eu .ic:last-child { margin-left: auto; opacity: .6; }
@@ -51,7 +50,7 @@ input { font: inherit; width: 100%; padding: 11px; border: 2px solid var(--musgo
 .caixa { background: var(--branco); width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 28px 20px 24px; text-align: center; animation: sobe .25s ease-out; }
 @media (min-width: 520px) { #modal { align-items: center; } .caixa { border-radius: 20px; } }
 @keyframes sobe { from { transform: translateY(40px); opacity: 0; } }
-.caixa h2 { justify-content: center; font-size: 28px; margin: 12px 0 4px; }
+.caixa h2 { justify-content: center; font-size: 32px; margin: 12px 0 4px; }
 .caixa > p { margin: 0 0 8px; color: var(--apagado); }
 .selo { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; background: var(--musgo); color: var(--branco); display: grid; place-items: center; }
 .selo .ic { width: 32px; height: 32px; }
