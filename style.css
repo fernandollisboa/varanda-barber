@@ -23,7 +23,6 @@ button:disabled { color: #c3c9b6; border-style: dashed; background: transparent;
 .principal:disabled { background: var(--claro); border: 2px solid var(--claro); color: var(--apagado); text-decoration: none; }
 #remarca { margin-top: 8px; }
 .link { display: inline; width: auto; min-height: 0; border: 0; padding: 0; background: none; font: inherit; text-transform: none; letter-spacing: 0; color: var(--musgo); text-decoration: underline; }
-#volta { display: block; margin: 14px auto 0; }
 input { font: inherit; width: 100%; padding: 14px; border: 2px solid var(--linha); border-radius: 12px; margin-top: 10px; background: var(--bg); color: var(--fg); outline: none; }
 input:focus { border-color: var(--musgo); }
 .status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; font-weight: 600; font-size: 15px; margin: 0 0 4px; }
@@ -39,10 +38,14 @@ input:focus { border-color: var(--musgo); }
 .erro { color: var(--erro); margin-top: 10px; min-height: 1px; }
 .ic { width: 1.1em; height: 1.1em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-/* o pop-up: sobe de baixo e faz uma pergunta por vez */
-#modal { position: fixed; inset: 0; background: rgba(30, 38, 20, .5); display: flex; align-items: flex-end; justify-content: center; z-index: 10; }
+/* o pop-up: no meio da tela, um passo por vez (dia, hora, confirmar) */
+#modal { position: fixed; inset: 0; background: rgba(30, 38, 20, .5); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
 #modal[hidden] { display: none; }
-.caixa { background: var(--bg); width: 100%; max-width: 440px; border-radius: 24px 24px 0 0; padding: 28px 20px 26px; animation: sobe .22s ease-out; }
-@media (min-width: 480px) { #modal { align-items: center; } .caixa { border-radius: 24px; } }
-@keyframes sobe { from { transform: translateY(30px); opacity: 0; } }
+.caixa { background: var(--bg); width: 100%; max-width: 400px; max-height: 100%; overflow: auto; border-radius: 24px; padding: 22px 20px 24px; animation: surge .2s ease-out; box-shadow: 0 20px 60px rgba(0, 0, 0, .25); }
+@keyframes surge { from { transform: scale(.94); opacity: 0; } }
 .caixa h2 { font-size: 36px; }
+.caixa .link { display: block; margin: 14px auto 0; }
+.passos { display: flex; gap: 6px; list-style: none; padding: 0; margin: 0 0 18px; }
+.passos li { flex: 1; padding-top: 8px; border-top: 4px solid var(--linha); font-size: 13px; color: var(--apagado); text-transform: uppercase; letter-spacing: .5px; }
+.passos li.feito { border-top-color: var(--musgo); color: var(--musgo); }
+.passos li.agora { border-top-color: var(--escuro); color: var(--escuro); font-weight: 700; }

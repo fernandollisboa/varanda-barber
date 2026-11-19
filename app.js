@@ -76,42 +76,44 @@
         <button id="remarca">remarcar</button></section>`
       : '';
     if (meu && !remarcando) return fecha();
-    await abre(guarda().nome && guarda().tel ? 'dia' : 'quem');
+    await abre('dia');
   }
 
   const fecha = () => { $modal.hidden = true; $modal.innerHTML = ''; };
+  // os três passos do pedido: o dia, a hora e confirmar (com nome e zap, que o aparelho lembra)
+  const PASSOS = ['dia', 'hora', 'confirmar'];
   async function abre(/** @type {string} */ passo) {
-    const g = guarda();
+    const g = guarda(), n = PASSOS.indexOf(passo);
+    const trilha = `<ol class="passos">${PASSOS.map((p, i) => `<li class="${i < n ? 'feito' : i === n ? 'agora' : ''}">${p}</li>`).join('')}</ol>`;
     let corpo = '';
-    if (passo === 'quem') corpo = `<h2>bora marcar seu corte?</h2>
-      <input id="nome" maxlength="40" placeholder="seu nome" autocomplete="given-name" value="${esc(g.nome || '')}">
-      <input id="tel" type="tel" inputmode="numeric" maxlength="16" placeholder="seu WhatsApp com DDD" autocomplete="tel-national" value="${esc(g.tel || '')}">
-      <button class="principal" id="segue">continuar</button>`;
     if (passo === 'dia') corpo = `<h2>que dia?</h2>
-      <p class="oi">${esc(g.nome)} · <button class="link" id="trocaQuem">não é você?</button></p>
       <div class="grade">${proximosDias(true).map(d => `<button data-dia="${d}">${rotulo(d)}</button>`).join('')}</div>`;
     if (passo === 'hora') {
       const ocupados = await lePedidos(dia).catch(() => ({})), agora = new Date(), hoje = iso(agora);
       const livre = (/** @type {number} */ h) => !ocupados[hk(h)] && !(dia === hoje && h <= agora.getHours());
-      corpo = `<h2>que horas?</h2>
-      <p class="oi">${rotulo(dia)} · <button class="link" id="trocaDia">outro dia</button></p>
-      <div class="grade">${HORAS.map(h => `<button data-hora="${hk(h)}" aria-pressed="${hk(h) === hora}"${livre(h) ? '' : ' disabled'}>${h}h</button>`).join('')}</div>
-      <button class="principal" id="marca"${hora ? '' : ' disabled'}>${hora ? `marcar ${rotulo(dia)} às ${hhDe(hora)}` : 'escolhe a hora'}</button>`;
+      corpo = `<h2>que horas?</h2><p class="oi">${rotulo(dia)}</p>
+      <div class="grade">${HORAS.map(h => `<button data-hora="${hk(h)}"${livre(h) ? '' : ' disabled'}>${h}h</button>`).join('')}</div>
+      <button class="link" data-volta="dia">voltar</button>`;
     }
-    $modal.innerHTML = `<div class="caixa">${corpo}${remarcando ? '<button class="link" id="volta">deixa como está</button>' : ''}<p class="erro" id="erro"></p></div>`;
+    if (passo === 'confirmar') corpo = `<h2>${rotulo(dia)} às ${hhDe(hora)}</h2>
+      <input id="nome" maxlength="40" placeholder="seu nome" autocomplete="given-name" value="${esc(g.nome || '')}">
+      <input id="tel" type="tel" inputmode="numeric" maxlength="16" placeholder="seu WhatsApp com DDD" autocomplete="tel-national" value="${esc(g.tel || '')}">
+      <button class="principal" id="confirma">${ic('ok')} confirmar</button>
+      <button class="link" data-volta="hora">voltar</button>`;
+    $modal.innerHTML = `<div class="caixa">${trilha}${corpo}${remarcando ? '<button class="link" id="volta">deixa como está</button>' : ''}<p class="erro" id="erro"></p></div>`;
     $modal.hidden = false;
   }
   const hk = (/** @type {number} */ h) => 'h' + String(h).padStart(2, '0');
   const erro = (/** @type {string} */ t) => ($('erro').textContent = t);
 
-  function segue() {
+  async function confirma() {
     const nome = $('nome').value.trim();
     // o zap com DDD, só os números (sem o 55 e sem o 0 da operadora)
     const tel = $('tel').value.replace(/\D/g, '').replace(/^0+/, '').replace(/^55(?=\d{10,11}$)/, '');
     if (!nome) return erro('põe seu nome');
     if (!/^\d{10,11}$/.test(tel)) return erro('põe seu zap com DDD');
     const g = guarda(); g.nome = nome; g.tel = tel; grava(g);
-    abre('dia');
+    await marca();
   }
 
   async function marca() {
@@ -157,16 +159,9 @@
     if (!b) return;
     if (b.dataset.aceita) return aceita(b.dataset.aceita);
     if (b.dataset.dia) { dia = b.dataset.dia; hora = ''; abre('hora'); }
-    else if (b.dataset.hora) {
-      // escolher a hora só marca o botão: sem ler o banco de novo
-      hora = b.dataset.hora;
-      $modal.querySelectorAll('[data-hora]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-      const m = $('marca'); m.disabled = false; m.textContent = `marcar ${rotulo(dia)} às ${hhDe(hora)}`;
-    }
-    else if (b.id === 'segue') segue();
-    else if (b.id === 'marca') marca();
-    else if (b.id === 'trocaQuem') abre('quem');
-    else if (b.id === 'trocaDia') { hora = ''; abre('dia'); }
+    else if (b.dataset.hora) { hora = b.dataset.hora; abre('confirmar'); }
+    else if (b.dataset.volta) abre(b.dataset.volta);
+    else if (b.id === 'confirma') confirma();
     else if (b.id === 'remarca') { remarcando = true; cliente(); }
     else if (b.id === 'volta') { remarcando = false; hora = ''; cliente(); }
   });

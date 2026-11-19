@@ -1,7 +1,7 @@
 # language: pt
 Funcionalidade: Agendar corte na Varanda
-  Na chegada, um pop-up pergunta uma coisa por vez: nome e zap, o dia (segunda a sábado) e a hora
-  (9h às 18h). O horário só vale quando o barbeiro aceita pela agenda dele (?admin; por enquanto sem senha).
+  Na chegada, um pop-up no meio da tela pede em três passos: o dia (segunda a sábado), a hora
+  (9h às 18h) e confirmar, com nome e zap. O horário só vale quando o barbeiro aceita pela agenda dele (?admin; por enquanto sem senha).
 
   Contexto:
     Dado que hoje é terça, 10/3, às 8h
@@ -10,22 +10,22 @@ Funcionalidade: Agendar corte na Varanda
     Quando Ana marca o horário de 10h de hoje
     Então Ana vê "esperando o barbeiro aceitar"
 
-  Cenário: na chegada, o pop-up pergunta o nome e o WhatsApp
+  Cenário: na chegada, o pop-up já pergunta o dia
     Quando Bruno abre o link
-    Então o pop-up pergunta o nome e o WhatsApp
+    Então o pop-up pergunta o dia
 
-  Cenário: quem já deu nome e zap vai direto pro dia
-    Dado que Bruno já deu o nome e o zap
-    Quando Bruno abre o link
-    Então o pop-up já pergunta o dia
+  Cenário: quem já marcou neste celular não digita nome e zap de novo
+    Dado que Bruno já marcou antes neste celular
+    Quando Bruno escolhe 10h de hoje
+    Então nome e zap já vêm preenchidos
 
-  Cenário: sem o zap não passa
-    Quando Bruno chega só com o nome
+  Cenário: sem o zap não confirma
+    Quando Bruno escolhe 10h de hoje e confirma só com o nome
     Então aparece "põe seu zap com DDD"
 
   Cenário: horário pedido não fica livre pra mais ninguém
     Dado que Ana pediu o horário de 10h de hoje
-    Quando Bruno chega e escolhe o dia de hoje
+    Quando Bruno escolhe o dia de hoje
     Então o horário de 10h está ocupado
     E o horário de 11h está livre
 
@@ -56,5 +56,5 @@ Funcionalidade: Agendar corte na Varanda
 
   Cenário: depois do último horário, o primeiro dia já é amanhã
     Dado que hoje é terça, 10/3, às 18h
-    Quando Bruno chega e diz o nome e o zap
+    Quando Bruno abre o link
     Então o primeiro dia é "qua 11/3"
