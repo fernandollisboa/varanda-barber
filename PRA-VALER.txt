@@ -1,8 +1,13 @@
 Varanda Barber: o que falta (só Firebase, sem servidor, sem login por enquanto)
 
 o app já fala com o banco varanda-417d1. o que você faz no console do Firebase:
-1. Realtime Database › Regras: cole o database.rules.json deste repo e publique (toda vez que ele mudar).
-NÃO precisa: chave privada, conta de serviço, Authentication, Cloudflare.
+1. as regras do banco sobem sozinhas pelo GitHub (.github/workflows/regras.yml), toda vez que o
+   database.rules.json muda na main. precisa, uma vez só, do secret FIREBASE_SA no repositório:
+   Firebase › Configurações do projeto › Contas de serviço › Gerar nova chave privada (baixa um .json);
+   GitHub › varanda-barber › Settings › Secrets and variables › Actions › New repository secret:
+   nome FIREBASE_SA, valor = o conteúdo inteiro do .json. depois apague o .json do computador.
+   (sem o secret: Realtime Database › Regras, cole o database.rules.json e clique em Publicar.)
+NÃO precisa: Authentication, Cloudflare.
 
 links:
 - cliente: https://fernandollisboa.github.io/varanda-barber/
