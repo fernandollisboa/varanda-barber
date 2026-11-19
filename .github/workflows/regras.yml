@@ -1,5 +1,5 @@
 name: Publica as regras do banco
-# o database.rules.json mudou na main: publica no Firebase com a conta de serviço (secret FIREBASE_SA).
+# o database.rules.json mudou na main: publica no Firebase com a conta de serviço (secret FIREBASE_SA, a do varanda-417d1).
 # roda junto com o pages.yml; mudança de regra tem que ser compatível com o app que já está no ar
 on:
   push:
