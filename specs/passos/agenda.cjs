@@ -13,7 +13,8 @@ class Mundo {
       const res = this.banco.responde(q.method(), u.pathname, u.searchParams.get('auth'), q.postData());
       await r.fulfill({ status: res.status, contentType: 'application/json', body: JSON.stringify(res.corpo) }); });
     const antes = { ...(this.meus[quem] ? { meus: this.meus[quem] } : {}) };
-    if (Object.keys(antes).length) await ctx.addInitScript(v => localStorage.setItem('varanda', v), JSON.stringify(antes));
+    // o que o aparelho já tinha antes desta visita: só na primeira carga da aba
+    if (Object.keys(antes).length) await ctx.addInitScript(v => { if (sessionStorage.getItem('__antes')) return; sessionStorage.setItem('__antes', '1'); localStorage.setItem('varanda', v); }, JSON.stringify(antes));
     const p = await ctx.newPage(); p.on('pageerror', e => this.erros.push(e.message));
     await p.goto(this.base + '/' + busca);
     return (this.abas[quem] = this.p = p);
@@ -68,4 +69,20 @@ Então('ele vê o pedido de {word} com o zap {string}', async ({ mundo }, quem, 
   const linha = mundo.p.locator('.pedido', { hasText: quem });
   await expect(linha.getByRole('link', { name: tel })).toHaveAttribute('href', 'https://wa.me/55' + tel.replace(/\D/g, ''));
   await expect(linha.getByRole('button', { name: 'aceitar' })).toBeVisible();
+});
+Então('ela vê o pedido e o botão de remarcar', ({ mundo }) => expect(mundo.p.locator('#meu').getByRole('button', { name: 'remarcar' })).toBeVisible());
+Então('não vê a agenda pra pedir outro', ({ mundo }) => expect(mundo.p.getByRole('button', { name: 'pedir horário' })).toHaveCount(0));
+Quando('{word} remarca pro horário de {int}h de hoje', async ({ mundo }, quem, h) => {
+  const p = await mundo.abre(quem);
+  await p.getByRole('button', { name: 'remarcar' }).click();
+  await p.getByRole('button', { name: `${h}h`, exact: true }).click();
+  await p.getByPlaceholder('seu nome').fill(quem);
+  await p.getByPlaceholder('seu zap com DDD').fill('79999991234');
+  await p.getByRole('button', { name: 'pedir horário' }).click();
+  await expect(p.locator('#meu')).toContainText(`às ${h}h`);
+});
+Então('na agenda do barbeiro {word} está só às {int}h', async ({ mundo }, quem, h) => {
+  const p = await mundo.abre('barbeiro', '?admin');
+  await expect(p.locator('.pedido', { hasText: quem })).toHaveCount(1);
+  await expect(p.locator('.pedido', { hasText: quem })).toContainText(` ${h}h `);
 });

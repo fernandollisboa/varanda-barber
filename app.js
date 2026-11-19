@@ -43,7 +43,7 @@
   const lePedidos = async (/** @type {string} */ dia) => clean(await (await fetch(`${DB}/pedidos/${dia}.json`)).json());
 
   // ---------- cliente ----------
-  let dia = '', hora = '';
+  let dia = '', hora = '', remarcando = false;
   /** @type {Record<string, Pedido>} */ let ocupados = {};
 
   async function cliente() {
@@ -54,16 +54,21 @@
     const meus = guarda().meus || [];
     const ultimo = meus[meus.length - 1];
     let meu = '';
-    if (ultimo && ehDia(ultimo.dia) && ehHora(ultimo.hora) && ultimo.dia >= hoje) {
+    // o pedido em aberto: de hoje em diante, e se for hoje, a hora ainda não passou
+    if (ultimo && ehDia(ultimo.dia) && ehHora(ultimo.hora) && ultimo.dia >= hoje && !(ultimo.dia === hoje && +ultimo.hora.slice(1) < agora.getHours())) {
       const p = (ultimo.dia === dia ? ocupados : await lePedidos(ultimo.dia).catch(() => ({})))[ultimo.hora];
       if (p) meu = `<section class="cartao" id="meu"><h2>seu horário: ${rotulo(ultimo.dia)} às ${hhDe(ultimo.hora)}</h2>
         <p class="status ${p.ok ? 'ok' : 'espera'}">${p.ok ? 'confirmado pelo barbeiro ✔' : 'esperando o barbeiro aceitar'}</p>
         <a class="botao" id="zap" target="_blank" rel="noopener" href="https://wa.me/${ZAP}?text=${encodeURIComponent(
           `Oi! Pedi corte na Varanda Barber ${rotulo(ultimo.dia)} às ${hhDe(ultimo.hora)} (${p.nome}). Aceita aqui: ${location.origin}${location.pathname}?admin&pedido=${ultimo.dia}/${ultimo.hora}`,
-        )}">mandar pro ${BARBEIRO} no zap</a></section>`;
+        )}">mandar pro ${BARBEIRO} no zap</a>
+        ${remarcando ? '<button id="volta">deixa como está</button>' : '<button id="remarca">remarcar</button>'}</section>`;
     }
+    // com pedido em aberto, só o pedido: outro horário é remarcar
+    if (meu && !remarcando) return ($app.innerHTML = meu);
+    if (!meu) remarcando = false;
     const livre = (/** @type {number} */ h) => { const k = 'h' + String(h).padStart(2, '0'); return !ocupados[k] && !(dia === hoje && h <= agora.getHours()); };
-    $app.innerHTML = `${meu}<section class="cartao"><h2>escolhe o dia</h2>
+    $app.innerHTML = `${meu}<section class="cartao"><h2>${remarcando ? 'escolhe o novo dia' : 'escolhe o dia'}</h2>
       <div class="grade dias">${dias.map(d => `<button data-dia="${d}" aria-pressed="${d === dia}">${rotulo(d)}</button>`).join('')}</div>
       <h2>e a hora</h2>
       <div class="grade">${HORAS.map(h => { const k = 'h' + String(h).padStart(2, '0');
@@ -83,7 +88,11 @@
     if (!/^\d{10,11}$/.test(tel)) return (erro.textContent = 'põe seu zap com DDD');
     const r = await fetch(`${DB}/pedidos/${dia}/${hora}.json`, { method: 'PUT', body: JSON.stringify({ nome, tel, em: { '.sv': 'timestamp' } }) }).catch(() => null);
     if (!r || !r.ok) { hora = ''; await cliente(); return (/** @type {HTMLElement} */ (document.getElementById('erro')).textContent = 'esse horário acabou de sair, escolhe outro'); }
-    const g = guarda(); g.meus = [...(g.meus || []), { dia, hora }].slice(-5); g.nome = nome; g.tel = tel; grava(g);
+    const g = guarda(), velho = (g.meus || []).slice(-1)[0];
+    // remarcou: o horário velho só sai depois que o novo gravou
+    if (remarcando && velho && ehDia(velho.dia) && ehHora(velho.hora)) await fetch(`${DB}/pedidos/${velho.dia}/${velho.hora}.json`, { method: 'DELETE' }).catch(() => null);
+    remarcando = false;
+    g.meus = [{ dia, hora }]; g.nome = nome; g.tel = tel; grava(g);
     hora = '';
     await cliente();
   }
@@ -119,6 +128,7 @@
     if (b.dataset.dia) { dia = b.dataset.dia; hora = ''; cliente(); }
     else if (b.dataset.hora) { hora = b.dataset.hora; $app.querySelectorAll('[data-hora]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); }
     else if (b.id === 'pede') pede();
+    else if (b.id === 'remarca' || b.id === 'volta') { remarcando = b.id === 'remarca'; hora = ''; cliente(); }
     else if (b.dataset.aceita) aceita(b.dataset.aceita);
   });
 

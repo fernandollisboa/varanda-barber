@@ -1,36 +1,36 @@
-/* rústico e tropical: madeira, areia, folha e terracota. semáforo só no status: amarelo espera, verde confirmado */
+/* verde musgo (o do short militar) no branco; a fonte quadradona é a Russo One (fonts/, OFL).
+   semáforo só no status: amarelo espera, verde confirmado */
+@font-face { font-family: 'Russo One'; src: url(fonts/RussoOne.woff2) format('woff2'); font-display: swap; }
 :root {
-  --madeira: #2b1d14; --madeira-clara: #3a281b; --areia: #f2e6cf; --tinta: #2a1f17; --apagado: #8c7a64;
-  --folha: #2f6b3f; --terracota: #b5532d; --amarelo: #e0a22a; --verde: #3a8a48;
+  --musgo: #4a5a33; --musgo-escuro: #33401f; --musgo-claro: #e9eddf; --branco: #fff; --tinta: #26301a; --apagado: #8a917c;
+  --amarelo: #e3a82b; --verde: #3f8f3a;
 }
 * { box-sizing: border-box; }
-body {
-  margin: 0; color: var(--tinta); font: 17px/1.4 system-ui, sans-serif;
-  background: var(--madeira) repeating-linear-gradient(90deg, transparent 0 46px, rgba(0, 0, 0, .12) 46px 48px);
-}
-header { text-align: center; color: var(--areia); padding: 28px 16px 8px; }
-h1 { margin: 0; font: 700 34px/1.1 Georgia, 'Times New Roman', serif; letter-spacing: .5px; }
-h1 span { color: #8fbf7a; font-style: italic; }
-header p { margin: 6px 0 0; color: #c9b896; }
+body { margin: 0; background: var(--branco); color: var(--tinta); font: 17px/1.4 system-ui, sans-serif; }
+h1, h2, button, .botao, .status { font-family: 'Russo One', system-ui, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .3px; }
+header { text-align: center; padding: 28px 16px 4px; }
+h1 { margin: 0; font-size: 38px; line-height: 1; color: var(--musgo-escuro); }
+h1 span { color: var(--musgo); }
+header p { margin: 6px 0 0; color: var(--apagado); }
 main { max-width: 480px; margin: 0 auto; padding: 16px; }
-.cartao { background: var(--areia); border-radius: 10px; padding: 16px; margin-bottom: 16px; border-top: 5px solid var(--folha); }
-h2 { margin: 0 0 12px; font: 700 19px Georgia, serif; }
+.cartao { border: 2px solid var(--musgo); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+h2 { margin: 0 0 12px; font-size: 19px; color: var(--musgo-escuro); }
 .grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.dias { margin-bottom: 12px; }
-button, .botao { font: inherit; border: 2px solid var(--tinta); background: #fffaf0; color: var(--tinta); border-radius: 8px; padding: 10px 6px; cursor: pointer; text-align: center; text-decoration: none; display: block; }
-button[aria-pressed="true"] { background: var(--tinta); color: var(--areia); }
-button:disabled { border-color: #d8c9ac; color: #ad9c82; background: transparent; cursor: default; text-decoration: line-through; }
-.principal { width: 100%; margin-top: 12px; background: var(--terracota); border-color: var(--terracota); color: #fff; font-weight: 700; }
-input { font: inherit; width: 100%; padding: 10px; border: 2px solid var(--tinta); border-radius: 8px; margin-top: 12px; background: #fffaf0; }
-.status { font-weight: 700; display: inline-block; padding: 2px 10px; border-radius: 99px; }
+.dias { margin-bottom: 14px; }
+button, .botao { font-size: 16px; border: 2px solid var(--musgo); background: var(--branco); color: var(--musgo-escuro); border-radius: 8px; padding: 11px 6px; cursor: pointer; text-align: center; text-decoration: none; display: block; width: 100%; }
+button[aria-pressed="true"] { background: var(--musgo-escuro); border-color: var(--musgo-escuro); color: var(--branco); }
+button:disabled { border-color: #d9ddd0; color: #b8bdab; background: transparent; cursor: default; text-decoration: line-through; }
+.principal, #zap { background: var(--musgo); color: var(--branco); margin-top: 12px; }
+#remarca, #volta { margin-top: 8px; }
+input { font: inherit; width: 100%; padding: 11px; border: 2px solid var(--musgo); border-radius: 8px; margin-top: 12px; }
+.status { display: inline-block; padding: 3px 12px; border-radius: 99px; font-size: 15px; }
 .status.espera { background: var(--amarelo); color: var(--tinta); }
-.status.ok { background: var(--verde); color: #fff; }
-#meu .status { margin: 0 0 12px; }
-.pedido { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0 8px 10px; border-top: 1px solid #ddcdb0; border-left: 5px solid var(--amarelo); }
+.status.ok { background: var(--verde); color: var(--branco); }
+#meu .status { margin: 0 0 4px; }
+.pedido { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 0 10px 10px; border-top: 1px solid var(--musgo-claro); border-left: 5px solid var(--amarelo); }
 .pedido.ok { border-left-color: var(--verde); }
-.pedido.alvo { background: #fbe9b8; }
+.pedido.alvo { background: #fbf1d4; }
+.pedido button { width: auto; padding: 10px 14px; }
+.tel { color: var(--musgo); font-weight: 700; }
 .vazio, .erro { color: var(--apagado); margin: 0; }
 .erro { color: #a3312a; }
-.preview { color: #e9c97a; font-size: 15px; }
-.preview a { color: var(--areia); }
-.tel { color: var(--folha); font-weight: 700; }

@@ -11,6 +11,8 @@ class Banco {
     if (!DIA.test(dia) || (hora && !HORA.test(hora))) return nega();
     const atual = hora ? this.pedidos[dia]?.[hora] : this.pedidos[dia];
     if (m === 'GET') return json(200, (filho ? atual?.[filho] : atual) ?? null);
+    // remarcar: o cliente apaga o pedido velho (sem login, por enquanto qualquer um apaga)
+    if (m === 'DELETE' && hora && !filho) { if (atual) delete this.pedidos[dia][hora]; return json(200, null); }
     if (m !== 'PUT' || !hora) return nega();
     const v = JSON.parse(texto || 'null');
     // o ok: por enquanto qualquer um (sem login), só true, só em pedido que existe

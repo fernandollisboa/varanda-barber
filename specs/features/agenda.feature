@@ -30,6 +30,18 @@ Funcionalidade: Agendar corte na Varanda
     Quando Bruno tenta pedir o horário de 10h de hoje sem o zap
     Então aparece "põe seu zap com DDD"
 
+  Cenário: com um pedido em aberto, o cliente só vê o pedido
+    Dado que Ana pediu o horário de 10h de hoje
+    Quando Ana abre o link
+    Então ela vê o pedido e o botão de remarcar
+    E não vê a agenda pra pedir outro
+
+  Cenário: remarcar troca o horário e libera o antigo
+    Dado que Ana pediu o horário de 10h de hoje
+    Quando Ana remarca pro horário de 11h de hoje
+    Então Ana vê "às 11h"
+    E na agenda do barbeiro Ana está só às 11h
+
   Cenário: depois do último horário, a agenda do cliente já começa amanhã
     Dado que hoje é terça, 10/3, às 18h
     Quando Bruno abre o link
