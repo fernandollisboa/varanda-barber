@@ -97,7 +97,7 @@
   function quemE() {
     const g = guarda();
     $modal.innerHTML = `<form class="caixa" id="quem" novalidate>
-      <div class="selo">${ic('tesoura')}</div>
+      <div class="selo"><span class="marca"></span></div>
       <h2>bora marcar seu corte?</h2>
       <p>pro ${BARBEIRO} saber quem é e te chamar no zap</p>
       <label class="campo">${ic('pessoa')}<input id="nome" maxlength="40" placeholder="seu nome" autocomplete="given-name" value="${esc(g.nome || '')}"></label>
