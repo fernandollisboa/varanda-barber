@@ -8,7 +8,7 @@ o mapa está no README.
 - **sem dependência no site, sem framework, sem build.** `package.json` é só ferramenta de teste.
 - **aspas simples no `const DB = '...'`**: o `specs/_serve.cjs` troca a linha pelo banco falso.
 - **o banco é hostil**: texto passa por `esc()` antes de `innerHTML`, o que vem do banco passa por `clean()`.
-- **só o barbeiro aceita**: o cliente só cria pedido; o `ok` só a conta `EMAIL` do Firebase Authentication grava (regra do banco).
+- **o pedido**: o cliente só cria (regra do banco); o `ok` por enquanto qualquer um grava (sem login, o dono pediu).
   mexeu no `database.rules.json`, mexa no `_banco.cjs`.
 - **service worker**: mudou a estratégia, troque o nome `CACHE`.
 
