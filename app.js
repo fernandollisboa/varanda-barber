@@ -3,7 +3,7 @@
 // ?barbeiro=<senha> é o link do barbeiro (a senha fica guardada; depois basta ?barbeiro).
 (() => {
   const DB = 'https://SEU-PROJETO-default-rtdb.firebaseio.com';
-  const API = 'https://varanda-api.SEU-USUARIO.workers.dev';
+  const API = 'https://varanda-api.fernando-costa-fd0.workers.dev';
   const ZAP = ''; // número do barbeiro com DDI, só dígitos (5511999999999); vazio, o zap pergunta pra quem mandar
   const HORAS = [9, 10, 11, 12, 13, 14, 15, 16, 17]; // o último corte começa 17h e acaba 18h
   const DIAS = 6; // quantos dias de trabalho aparecem pro cliente (domingo fecha)
