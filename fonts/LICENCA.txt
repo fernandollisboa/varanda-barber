@@ -1,1 +1,1 @@
-Russo One (fonts/RussoOne.woff2): Copyright 2011 Jovanny Lemonad. SIL Open Font License 1.1 (https://openfontlicense.org), não MIT.
+Squada One (fonts/SquadaOne.woff2): Copyright 2011 Joe Prince. SIL Open Font License 1.1 (https://openfontlicense.org), não MIT.
