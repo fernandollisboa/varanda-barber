@@ -2,8 +2,8 @@
    semáforo só no status: amarelo espera, verde confirmado */
 @font-face { font-family: 'Russo One'; src: url(fonts/RussoOne.woff2) format('woff2'); font-display: swap; }
 :root {
-  --musgo: #4a5a33; --musgo-escuro: #33401f; --musgo-claro: #e9eddf; --branco: #fff; --tinta: #26301a; --apagado: #8a917c;
-  --amarelo: #e3a82b; --verde: #3f8f3a;
+  --musgo: #4a5a33; --musgo-escuro: #2f3a20; --musgo-claro: #e9eddf; --branco: #fff; --tinta: #26301a; --apagado: #8a917c;
+  --amarelo: #f4e7b8; --verde: #5f7f40;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--branco); color: var(--tinta); font: 17px/1.4 system-ui, sans-serif; }
@@ -30,7 +30,7 @@ input { font: inherit; width: 100%; padding: 11px; border: 2px solid var(--musgo
 #meu .status { margin: 0 0 4px; }
 .pedido { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 0 10px 10px; border-top: 1px solid var(--musgo-claro); border-left: 5px solid var(--amarelo); }
 .pedido.ok { border-left-color: var(--verde); }
-.pedido.alvo { background: #fbf1d4; }
+.pedido.alvo { background: #faf4dc; }
 .pedido button { width: auto; padding: 10px 14px; }
 .tel { color: var(--musgo); font-weight: 700; }
 .vazio, .erro { color: var(--apagado); margin: 0; }
