@@ -37,9 +37,34 @@
     return r;
   };
 
-  const lePedidos = async (/** @type {string} */ dia) => clean(await (await fetch(`${DB}/pedidos/${dia}.json`)).json());
+  // sem banco configurado (os SEU-... ali em cima), o app roda em preview: o banco e a API são imitados
+  // no próprio aparelho (localStorage). o barbeiro do preview entra com ?barbeiro=preview
+  const PREVIEW = DB.includes('SEU-PROJETO');
+  const falso = async (/** @type {string} */ url, /** @type {any} */ op = {}) => {
+    const res = (/** @type {number} */ s, /** @type {any} */ v) => new Response(JSON.stringify(v), { status: s });
+    /** @type {any} */ let b = {};
+    try { b = JSON.parse(localStorage.getItem('varanda:preview') || '{}') || {}; } catch {}
+    const salva = () => { try { localStorage.setItem('varanda:preview', JSON.stringify(b)); } catch {} };
+    const [, dia, hora] = url.match(/pedidos\/([^/.]+)(?:\/([^/.]+))?\.json$/) || [];
+    if (dia) {
+      if (!op.method) return res(200, b[dia] || null);
+      if (b[dia]?.[hora]) return res(401, null);
+      (b[dia] ||= {})[hora] = { nome: JSON.parse(op.body).nome, em: Date.now() };
+      salva();
+      return res(200, null);
+    }
+    const c = JSON.parse(op.body || '{}');
+    if (url.endsWith('/aceita')) {
+      if (c.senha !== 'preview') return res(401, {});
+      if (b[c.dia]?.[c.hora]) { b[c.dia][c.hora].ok = true; salva(); }
+    }
+    return res(200, {});
+  };
+  const rede = PREVIEW ? falso : fetch;
+
+  const lePedidos = async (/** @type {string} */ dia) => clean(await (await rede(`${DB}/pedidos/${dia}.json`)).json());
   const api = (/** @type {string} */ rota, /** @type {any} */ corpo) =>
-    fetch(API + rota, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
+    rede(API + rota, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
 
   // ---------- cliente ----------
   let dia = '', hora = '';
@@ -76,7 +101,7 @@
     const erro = /** @type {HTMLElement} */ (document.getElementById('erro'));
     if (!hora) return (erro.textContent = 'escolhe uma hora');
     if (!nome) return (erro.textContent = 'põe seu nome');
-    const r = await fetch(`${DB}/pedidos/${dia}/${hora}.json`, { method: 'PUT', body: JSON.stringify({ nome, em: { '.sv': 'timestamp' } }) }).catch(() => null);
+    const r = await rede(`${DB}/pedidos/${dia}/${hora}.json`, { method: 'PUT', body: JSON.stringify({ nome, em: { '.sv': 'timestamp' } }) }).catch(() => null);
     if (!r || !r.ok) { hora = ''; await cliente(); return (/** @type {HTMLElement} */ (document.getElementById('erro')).textContent = 'esse horário acabou de sair, escolhe outro'); }
     const g = guarda(); g.meus = [...(g.meus || []), { dia, hora }].slice(-5); grava(g);
     api('/avisa', { dia, hora }).catch(() => {});
@@ -106,10 +131,11 @@
   const bytes = (/** @type {string} */ s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (s.length % 4)) % 4)), c => c.charCodeAt(0));
   async function ligaAviso() {
     const b = /** @type {HTMLButtonElement} */ (document.getElementById('aviso'));
+    if (PREVIEW) return (b.textContent = 'no preview não tem aviso no celular');
     try {
       if ((await Notification.requestPermission()) !== 'granted') throw 0;
       const reg = await navigator.serviceWorker.ready;
-      const { chave } = await (await fetch(API + '/chave')).json();
+      const { chave } = await (await rede(API + '/chave')).json();
       const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: bytes(chave) }));
       const r = await api('/inscreve', { senha: guarda().senha || '', sub: sub.toJSON() });
       b.textContent = r.ok ? 'aviso ligado ✔' : 'esse link não é o do barbeiro';
@@ -131,6 +157,8 @@
     else if (b.id === 'aviso') ligaAviso();
   });
 
+  if (PREVIEW) document.querySelector('header')?.insertAdjacentHTML('beforeend', `<p class="preview">preview: os pedidos ficam só neste aparelho ·
+    ${ehBarbeiro ? '<a href="./">ver como cliente</a>' : '<a href="?barbeiro=preview">ver como barbeiro</a>'}</p>`);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   (ehBarbeiro ? barbeiro() : cliente()).catch(() => ($app.innerHTML = '<p class="erro cartao">sem conexão, tenta de novo</p>'));
 })();

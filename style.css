@@ -21,3 +21,4 @@ input { font: inherit; width: 100%; padding: 10px; border: 2px solid var(--tinta
 .pedido:first-of-type { border-top: 0; }
 .vazio, .erro { color: var(--apagado); margin: 0; }
 .erro { color: #a3312a; }
+.preview { color: var(--ouro); font-size: 15px; } .preview a { color: var(--papel); }
