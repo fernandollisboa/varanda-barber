@@ -1,6 +1,6 @@
 // @ts-check
 // Varanda Barber: o cliente escolhe dia e hora, o barbeiro aceita. Firebase via REST, sem servidor.
-// ?barbeiro é a agenda do barbeiro: ele entra uma vez com a senha da conta dele no Firebase (EMAIL) e o aparelho lembra.
+// ?admin é a agenda do barbeiro: ele entra uma vez com a senha da conta dele no Firebase (EMAIL) e o aparelho lembra.
 (() => {
   const DB = 'https://SEU-PROJETO-default-rtdb.firebaseio.com';
   const CHAVE = 'SUA-CHAVE-WEB'; // a "Chave de API da Web" do projeto Firebase (é pública)
@@ -87,7 +87,7 @@
       if (p) meu = `<section class="cartao" id="meu"><h2>seu horário: ${rotulo(ultimo.dia)} às ${hhDe(ultimo.hora)}</h2>
         <p class="status ${p.ok ? 'ok' : 'espera'}">${p.ok ? 'confirmado pelo barbeiro ✔' : 'esperando o barbeiro aceitar'}</p>
         <a class="botao" id="zap" target="_blank" rel="noopener" href="https://wa.me/${ZAP}?text=${encodeURIComponent(
-          `Oi! Pedi corte na Varanda Barber ${rotulo(ultimo.dia)} às ${hhDe(ultimo.hora)} (${p.nome}). Aceita aqui: ${location.origin}${location.pathname}?barbeiro&pedido=${ultimo.dia}/${ultimo.hora}`,
+          `Oi! Pedi corte na Varanda Barber ${rotulo(ultimo.dia)} às ${hhDe(ultimo.hora)} (${p.nome}). Aceita aqui: ${location.origin}${location.pathname}?admin&pedido=${ultimo.dia}/${ultimo.hora}`,
         )}">mandar pro ${BARBEIRO} no zap</a></section>`;
     }
     const livre = (/** @type {number} */ h) => { const k = 'h' + String(h).padStart(2, '0'); return !ocupados[k] && !(dia === hoje && h <= agora.getHours()); };
@@ -157,7 +157,7 @@
 
   // ---------- começo ----------
   const q = new URLSearchParams(location.search);
-  const ehBarbeiro = q.has('barbeiro');
+  const ehBarbeiro = q.has('admin') || q.has('barbeiro'); // ?barbeiro é o nome antigo
   const alvoZap = q.get('pedido') || '';
 
   $app.addEventListener('click', e => {
@@ -171,7 +171,7 @@
   });
 
   if (PREVIEW) document.querySelector('header')?.insertAdjacentHTML('beforeend', `<p class="preview">preview: os pedidos ficam só neste aparelho ·
-    ${ehBarbeiro ? '<a href="./">ver como cliente</a>' : '<a href="?barbeiro">ver como barbeiro</a> (senha: preview)'}</p>`);
+    ${ehBarbeiro ? '<a href="./">ver como cliente</a>' : '<a href="?admin">ver como barbeiro</a> (senha: preview)'}</p>`);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   (ehBarbeiro ? barbeiro() : cliente()).catch(() => ($app.innerHTML = '<p class="erro cartao">sem conexão, tenta de novo</p>'));
 })();

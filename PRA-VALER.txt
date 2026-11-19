@@ -14,5 +14,5 @@ NÃO precisa: chave privada / conta de serviço / Cloudflare.
 
 no código (eu faço, com o apiKey): const DB = 'https://varanda-417d1-default-rtdb.firebaseio.com' e const CHAVE = '<apiKey>'.
 
-o Luique abre https://fernandollisboa.github.io/varanda-barber/?barbeiro, entra uma vez com a senha e o celular lembra.
+o Luique abre https://fernandollisboa.github.io/varanda-barber/?admin, entra uma vez com a senha e o celular lembra.
 o aviso de pedido novo é o zap: o cliente manda pelo botão "mandar pro Luique no zap".

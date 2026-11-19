@@ -46,7 +46,7 @@ Quando('{word} pede o horário de {int}h de hoje', async ({ mundo }, quem, h) =>
 });
 Quando('{word} abre o link', ({ mundo }, quem) => mundo.abre(quem));
 const entra = async (mundo, quem, senha) => {
-  const p = await mundo.abre(quem, '?barbeiro');
+  const p = await mundo.abre(quem, '?admin');
   await p.getByPlaceholder('senha do Luique').fill(senha);
   await p.getByRole('button', { name: 'entrar' }).click();
   return p;
@@ -56,7 +56,7 @@ Quando('o barbeiro entra com a senha dele e aceita o pedido de {word}', async ({
   await p.locator('.pedido', { hasText: quem }).getByRole('button', { name: 'aceitar' }).click();
   await expect(p.locator('.pedido', { hasText: quem })).toContainText('aceito');
 });
-Quando('o barbeiro abre a agenda', ({ mundo }) => mundo.abre('barbeiro', '?barbeiro'));
+Quando('o barbeiro abre a agenda', ({ mundo }) => mundo.abre('barbeiro', '?admin'));
 Quando('alguém tenta entrar na agenda do barbeiro com uma senha inventada', ({ mundo }) => entra(mundo, 'intruso', 'chute'));
 
 Então('{word} vê {string}', async ({ mundo }, quem, texto) => { await expect((await mundo.abre(quem)).locator('#meu')).toContainText(texto); });
@@ -67,6 +67,6 @@ Então('o primeiro dia da agenda é {string}', ({ mundo }, d) => expect(mundo.p.
 Então('o botão do zap manda pro Luique o link do pedido de {int}h de hoje', async ({ mundo }, h) => {
   const href = await mundo.p.getByRole('link', { name: 'mandar pro Luique no zap' }).getAttribute('href');
   expect(href).toMatch(/^https:\/\/wa\.me\/557996491143\?text=/);
-  expect(decodeURIComponent(href.split('text=')[1])).toContain(`?barbeiro&pedido=${HOJE}/${hora(h)}`);
+  expect(decodeURIComponent(href.split('text=')[1])).toContain(`?admin&pedido=${HOJE}/${hora(h)}`);
 });
 Então('ele vê o pedido de {word} pra aceitar', ({ mundo }, quem) => expect(mundo.p.locator('.pedido', { hasText: quem }).getByRole('button', { name: 'aceitar' })).toBeVisible());
