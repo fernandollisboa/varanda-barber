@@ -51,8 +51,6 @@ input:focus { border-color: var(--musgo); }
 .passos li.agora { border-top-color: var(--escuro); color: var(--escuro); font-weight: 700; }
 
 /* as poltronas (o passo da hora): fileiras de quatro, curvadas como sala de cinema (as do meio mais pra trás) */
-.turno { font: 700 12px system-ui; letter-spacing: .12em; text-transform: uppercase; color: var(--musgo); margin: 10px 0 2px; padding-bottom: 4px; border-bottom: 1px solid var(--claro); }
-.turno i { font-style: normal; font-weight: 500; letter-spacing: .03em; text-transform: none; color: var(--apagado); }
 .salao { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 4px; padding-bottom: 10px; }
 .salao .pol:nth-child(4n+2), .salao .pol:nth-child(4n+3) { transform: translateY(10px); }
 button.pol { flex-direction: column; gap: 0; min-height: 0; border: 0; padding: 4px 0; background: none; border-radius: 10px; }
@@ -66,3 +64,8 @@ button.pol { flex-direction: column; gap: 0; min-height: 0; border: 0; padding: 
 .pol:disabled .c { fill: var(--claro); stroke: #c3c9b6; }
 .pol:disabled .p { fill: #c3c9b6; }
 .pol:disabled span { color: #b3b9a6; text-decoration: line-through; }
+.abas { display: flex; gap: 4px; background: var(--claro); border-radius: 14px; padding: 4px; margin: 4px 0 12px; }
+.abas .aba { flex: 1; flex-direction: column; gap: 0; min-height: 0; border: 0; border-radius: 11px; padding: 8px 4px; background: none; color: var(--musgo); font-size: 22px; }
+.abas .aba i { font: 500 12px system-ui, sans-serif; font-style: normal; text-transform: none; letter-spacing: 0; color: var(--apagado); }
+.abas .aba[aria-pressed="true"] { background: var(--bg); color: var(--escuro); box-shadow: 0 1px 4px rgba(0, 0, 0, .12); }
+.salao[hidden] { display: none; }

@@ -59,7 +59,7 @@
   // tudo num pop-up, uma pergunta por vez: quem (nome e zap) → dia → hora. com pedido em aberto, só o pedido na tela
   const $modal = /** @type {HTMLElement} */ (document.getElementById('modal'));
   const $ = (/** @type {string} */ id) => /** @type {HTMLInputElement} */ (document.getElementById(id));
-  let dia = '', hora = '', remarcando = false;
+  let dia = '', hora = '', turno = '', remarcando = false;
 
   /** o pedido em aberto deste aparelho, se ainda vale: de hoje em diante, e se for hoje, a hora não passou */
   async function meuPedido() {
@@ -98,11 +98,14 @@
       const ocupados = await lePedidos(dia).catch(() => ({})), hoje = iso(new Date());
       const livre = (/** @type {string} */ h) => !ocupados[h] && !(dia === hoje && minutos(h) <= agoraMin());
       // as poltronas em fileiras de quatro, curvadas como sala de cinema; um bloco pra manhã, outro pra tarde
-      const salao = (/** @type {string[]} */ hs) => `<div class="salao">${hs.map(h => `<button class="pol" data-hora="${h}"${livre(h) ? '' : ' disabled'}>${POLTRONA}<span>${hhDe(h)}</span></button>`).join('')}</div>`;
+      const salao = (/** @type {string[]} */ hs, /** @type {string} */ t) => `<div class="salao" data-salao="${t}"${t === turno ? '' : ' hidden'}>${hs.map(h => `<button class="pol" data-hora="${h}"${livre(h) ? '' : ' disabled'}>${POLTRONA}<span>${hhDe(h)}</span></button>`).join('')}</div>`;
       const conta = (/** @type {string[]} */ hs) => hs.filter(livre).length;
+      // uma aba por vez: abre no turno que ainda tem horário livre
+      if (!turno) turno = conta(MANHA) || !conta(TARDE) ? 'manha' : 'tarde';
+      const aba = (/** @type {string} */ t, /** @type {string} */ nome, /** @type {string[]} */ hs) =>
+        `<button class="aba" data-turno="${t}" aria-pressed="${t === turno}">${nome}<i>${conta(hs) ? conta(hs) + ' livres' : 'lotada'}</i></button>`;
       corpo = `<h2>que horas?</h2><p class="oi">${rotulo(dia)}</p>
-      <p class="turno">manhã <i>${conta(MANHA)} livres</i></p>${salao(MANHA)}
-      <p class="turno">tarde <i>${conta(TARDE)} livres</i></p>${salao(TARDE)}
+      <div class="abas">${aba('manha', 'manhã', MANHA)}${aba('tarde', 'tarde', TARDE)}</div>${salao(MANHA, 'manha')}${salao(TARDE, 'tarde')}
       <button class="link" data-volta="dia">voltar</button>`;
     }
     if (passo === 'confirmar') corpo = `<h2>${rotulo(dia)} às ${hhDe(hora)}</h2>
@@ -167,7 +170,13 @@
     const b = /** @type {HTMLElement} */ (e.target).closest('button');
     if (!b) return;
     if (b.dataset.aceita) return aceita(b.dataset.aceita);
-    if (b.dataset.dia) { dia = b.dataset.dia; hora = ''; abre('hora'); }
+    if (b.dataset.dia) { dia = b.dataset.dia; hora = ''; turno = ''; abre('hora'); }
+    else if (b.dataset.turno) {
+      // trocar de aba não lê o banco de novo
+      turno = b.dataset.turno;
+      $modal.querySelectorAll('[data-turno]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      $modal.querySelectorAll('[data-salao]').forEach(x => { /** @type {HTMLElement} */ (x).hidden = x.getAttribute('data-salao') !== turno; });
+    }
     else if (b.dataset.hora) { hora = b.dataset.hora; abre('confirmar'); }
     else if (b.dataset.volta) abre(b.dataset.volta);
     else if (b.id === 'confirma') confirma();

@@ -10,6 +10,11 @@ Funcionalidade: Agendar corte na Varanda
     Quando Ana marca o horário de 10h de hoje
     Então Ana vê "esperando o barbeiro aceitar"
 
+  Cenário: com a manhã lotada, as poltronas já abrem na tarde
+    Dado que a manhã de hoje está toda ocupada
+    Quando Bruno escolhe o dia de hoje
+    Então aparecem as poltronas da tarde
+
   Cenário: dá pra pegar meia hora
     Quando Ana marca o horário das "10:30" de hoje
     Então Ana vê "às 10:30"

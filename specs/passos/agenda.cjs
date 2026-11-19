@@ -106,3 +106,10 @@ Quando('{word} marca o horário das {string} de hoje', async ({ mundo }, quem, t
   await p.getByPlaceholder('seu WhatsApp com DDD').fill('79999991234');
   await p.getByRole('button', { name: 'confirmar' }).click();
 });
+Dado('que a manhã de hoje está toda ocupada', ({ mundo }) => {
+  for (const h of ['09', '10', '11', '12']) for (const m of ['00', '30']) mundo.banco.pede(HOJE, `h${h}${m}`, 'Fulano');
+});
+Então('aparecem as poltronas da tarde', async ({ mundo }) => {
+  await expect(mundo.p.getByRole('button', { name: '13:00', exact: true })).toBeVisible();
+  await expect(mundo.p.getByRole('button', { name: '9:00', exact: true })).toBeHidden();
+});
