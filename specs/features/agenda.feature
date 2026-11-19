@@ -1,6 +1,6 @@
 # language: pt
 Funcionalidade: Agendar corte na Varanda
-  O cliente escolhe dia e hora pelo link, de 9h às 18h, e deixa nome e zap. O horário só vale
+  Na chegada o cliente diz nome e zap; depois escolhe dia e hora, de 9h às 18h. O horário só vale
   quando o barbeiro aceita pela agenda dele (?admin; por enquanto sem senha).
 
   Contexto:
@@ -26,8 +26,14 @@ Funcionalidade: Agendar corte na Varanda
     Quando o barbeiro aceita o pedido de Ana pelo link dele
     Então Ana vê "confirmado pelo barbeiro"
 
-  Cenário: sem o zap, o pedido não sai
-    Quando Bruno tenta pedir o horário de 10h de hoje sem o zap
+  Cenário: na chegada, um pop-up pede nome e WhatsApp uma vez só
+    Quando Bruno abre o link
+    Então aparece o pop-up pedindo nome e WhatsApp
+    Quando Bruno entra e diz o nome e o zap
+    Então na próxima vez o pop-up não aparece
+
+  Cenário: sem o zap não passa do pop-up
+    Quando Bruno entra só com o nome
     Então aparece "põe seu zap com DDD"
 
   Cenário: com um pedido em aberto, o cliente só vê o pedido

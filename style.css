@@ -8,22 +8,23 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--branco); color: var(--tinta); font: 17px/1.4 system-ui, sans-serif; }
 h1, h2, button, .botao, .status { font-family: 'Russo One', system-ui, sans-serif; font-weight: 400; text-transform: uppercase; letter-spacing: .3px; }
-header { text-align: center; padding: 28px 16px 4px; }
+header { text-align: center; padding: 24px 16px 4px; }
+.logo { width: 40px; height: 40px; fill: none; stroke: var(--musgo); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 h1 { margin: 0; font-size: 38px; line-height: 1; color: var(--musgo-escuro); }
 h1 span { color: var(--musgo); }
 header p { margin: 6px 0 0; color: var(--apagado); }
 main { max-width: 480px; margin: 0 auto; padding: 16px; }
 .cartao { border: 2px solid var(--musgo); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-h2 { margin: 0 0 12px; font-size: 19px; color: var(--musgo-escuro); }
+h2 { margin: 0 0 12px; font-size: 19px; color: var(--musgo-escuro); display: flex; align-items: center; gap: 8px; }
 .grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .dias { margin-bottom: 14px; }
-button, .botao { font-size: 16px; border: 2px solid var(--musgo); background: var(--branco); color: var(--musgo-escuro); border-radius: 8px; padding: 11px 6px; cursor: pointer; text-align: center; text-decoration: none; display: block; width: 100%; }
+button, .botao { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; border: 2px solid var(--musgo); background: var(--branco); color: var(--musgo-escuro); border-radius: 8px; padding: 11px 6px; cursor: pointer; text-align: center; text-decoration: none; width: 100%; }
 button[aria-pressed="true"] { background: var(--musgo-escuro); border-color: var(--musgo-escuro); color: var(--branco); }
 button:disabled { border-color: #d9ddd0; color: #b8bdab; background: transparent; cursor: default; text-decoration: line-through; }
 .principal, #zap { background: var(--musgo); color: var(--branco); margin-top: 12px; }
 #remarca, #volta { margin-top: 8px; }
 input { font: inherit; width: 100%; padding: 11px; border: 2px solid var(--musgo); border-radius: 8px; margin-top: 12px; }
-.status { display: inline-block; padding: 3px 12px; border-radius: 99px; font-size: 15px; }
+.status { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border-radius: 99px; font-size: 15px; }
 .status.espera { background: var(--amarelo); color: var(--tinta); }
 .status.ok { background: var(--verde); color: var(--branco); }
 #meu .status { margin: 0 0 4px; }
@@ -34,3 +35,25 @@ input { font: inherit; width: 100%; padding: 11px; border: 2px solid var(--musgo
 .tel { color: var(--musgo); font-weight: 700; }
 .vazio, .erro { color: var(--apagado); margin: 0; }
 .erro { color: #a3312a; }
+
+/* ícones */
+.ic { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.quando { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font: 22px 'Russo One', system-ui; text-transform: uppercase; color: var(--musgo-escuro); margin: 0 0 12px; }
+.quando span { display: inline-flex; align-items: center; gap: 8px; }
+.eu { background: var(--musgo-claro); border-color: var(--musgo-claro); color: var(--musgo-escuro); font: 15px system-ui, sans-serif; text-transform: none; margin-bottom: 16px; justify-content: flex-start; padding: 10px 14px; }
+.eu .ic:last-child { margin-left: auto; opacity: .6; }
+.tel { display: inline-flex; align-items: center; gap: 4px; }
+
+/* o pop-up da chegada */
+#modal { position: fixed; inset: 0; background: rgba(28, 36, 18, .55); display: flex; align-items: flex-end; justify-content: center; z-index: 10; }
+#modal[hidden] { display: none; }
+.caixa { background: var(--branco); width: 100%; max-width: 480px; border-radius: 20px 20px 0 0; padding: 28px 20px 24px; text-align: center; animation: sobe .25s ease-out; }
+@media (min-width: 520px) { #modal { align-items: center; } .caixa { border-radius: 20px; } }
+@keyframes sobe { from { transform: translateY(40px); opacity: 0; } }
+.caixa h2 { justify-content: center; font-size: 22px; margin: 12px 0 4px; }
+.caixa > p { margin: 0 0 8px; color: var(--apagado); }
+.selo { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; background: var(--musgo); color: var(--branco); display: grid; place-items: center; }
+.selo .ic { width: 32px; height: 32px; }
+.campo { display: flex; align-items: center; gap: 10px; border: 2px solid var(--musgo); border-radius: 10px; padding: 0 12px; margin-top: 12px; color: var(--musgo); }
+.campo:focus-within { border-color: var(--musgo-escuro); box-shadow: 0 0 0 3px var(--musgo-claro); }
+.campo input { border: 0; margin: 0; padding: 13px 0; outline: none; }
